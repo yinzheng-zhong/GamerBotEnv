@@ -1,0 +1,6 @@
+numpy
+tensorflow
+pandas
+pyautogui
+opencv-python
+Pillow
