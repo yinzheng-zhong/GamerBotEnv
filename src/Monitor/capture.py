@@ -18,14 +18,14 @@ import src.Utils.image as image_utils
 class Capture:
     def __init__(self):
         self.frame_rate = Capturing.get_frame_rate()
-        self.historical_screenshots = NN.get_time_steps() - 1
+        self.list_screenshots = NN.get_time_steps()
         self.resolution = Capturing.get_resolution()
 
-        self.screenshot_list = collections.deque(maxlen=self.historical_screenshots)
+        self.screenshot_list = collections.deque(maxlen=self.list_screenshots)
 
         # initialize the deque
         self.screenshot_list.extend(
-            [np.zeros((self.resolution[0], self.resolution[1], 3))] * self.historical_screenshots
+            [np.zeros((self.resolution[0], self.resolution[1], 3))] * self.list_screenshots
         )
 
         self.run()
@@ -56,13 +56,13 @@ class Capture:
         """
         Returns a list of screenshots for time series prediction
         """
-        return list(self.screenshot_list).append(self.capture_latest())
+        return list(self.screenshot_list)
 
     def get_screenshot(self):
         """
         Returns the latest screenshot for single prediction
         """
-        return self.capture_latest()
+        return list(self.screenshot_list)[-1]
 
 
 # """test"""
