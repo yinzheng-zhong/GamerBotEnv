@@ -3,4 +3,5 @@ tensorflow
 pandas
 pyautogui
 opencv-python
-Pillow
+pillow
+pytesseract

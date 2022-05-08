@@ -1,5 +1,5 @@
 """
-This class will continuously capture screenshot from the Monitor. A maximum amount of screenshots can be stored in the
+This class will continuously capture screenshot from the Sensor. A maximum amount of screenshots can be stored in the
 list. We some historical screenshot and a latest screenshot that has a action occurred.
 
 """
@@ -18,23 +18,26 @@ import src.Utils.image as image_utils
 class Capture:
     def __init__(self):
         self.frame_rate = Capturing.get_frame_rate()
-        self.list_screenshots = NN.get_time_steps()
+        self.max_screenshots = NN.get_time_steps()
         self.resolution = Capturing.get_resolution()
 
-        self.screenshot_list = collections.deque(maxlen=self.list_screenshots)
+        self.screenshot_list = collections.deque(maxlen=self.max_screenshots)
 
         # initialize the deque
         self.screenshot_list.extend(
-            [np.zeros((self.resolution[0], self.resolution[1], 3))] * self.list_screenshots
+            [np.zeros((self.resolution[0], self.resolution[1], 3))] * self.max_screenshots
         )
 
         self.run()
 
     def capture_latest(self):
         image = pyautogui.screenshot()
-        image = np.array(image)
+        image = np.array(image).astype(np.uint8)
 
-        return image_utils.scale_image(image, self.resolution)
+        if any(self.resolution):
+            return image_utils.scale_image(image, self.resolution)
+        else:
+            return image
 
     def capture_historical(self):
         while True:
@@ -50,7 +53,7 @@ class Capture:
         capture_process.start()
 
         print("Capture process started")
-        capture_process.join()
+        #capture_process.join()
 
     def get_screenshot_series(self):
         """

@@ -1,7 +1,7 @@
 class Settings:
     capturing = {
         'frame_rate': 10,
-        'resolution': (512, 512),
+        'resolution': (0, 0), # (width, height) (0, 0) for original resolution
     }
 
     neural_network = {
