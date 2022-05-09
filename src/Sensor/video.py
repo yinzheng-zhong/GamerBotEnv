@@ -22,13 +22,13 @@ FRAME_TIME_QUEUE_SIZE = 10
 
 
 class Capture:
-    def __init__(self):
+    def __init__(self, ret_list):
         self.frame_rate = Capturing.get_frame_rate()
         self.max_screenshots = NN.get_time_steps()
         self.resolution = Capturing.get_resolution()
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
-        self.screenshot_list = None
+        self.screenshot_list = ret_list
 
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
 
@@ -85,9 +85,7 @@ class Capture:
             print("Pipeline dead.")
             self.killed = True
 
-    def run(self, ret_list):
-        self.screenshot_list = ret_list
-
+    def run(self):
         zeros = np.zeros((500, 500, 3), dtype=np.uint8)
         self.put_data(zeros)
 
