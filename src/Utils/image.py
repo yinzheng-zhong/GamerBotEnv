@@ -4,6 +4,13 @@ Providing functionalities for image processing, e.g, image resizing, image loadi
 import cv2
 import pytesseract
 from PIL import Image
+import os
+import pyautogui
+import numpy as np
+
+"""check if using Windows """
+if os.name == 'nt':
+    pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
 
 def scale_image(image, resolution=(512, 512)):
@@ -18,11 +25,52 @@ def save_image(image, path):
         print(e)
 
 
-def extract_text(image):
-    #image = Image.fromarray(image)
+def convert_color_to_rgb(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    if not image:
-        return ''
-    else:
-        text = pytesseract.image_to_string(image)
+
+def invert_color(image):
+    image = (255 - image)
+    return image
+
+
+def convert_to_grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+def extract_text(image):
+    try:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        invert = invert_color(gray)
+        #cv2.imshow('Gray image', invert)
+        text = pytesseract.image_to_string(invert)
         return text
+    except Exception as e:
+        return ''
+
+
+def load_image(filename):
+    try:
+        image = cv2.imread('../../var/features/' + filename)
+        return image
+    except Exception as e:
+        print(e)
+
+
+def feature_matching(image1, image2):
+    """
+    Feature matching between two images
+    :param image1:image1
+    :param image2:feature
+    """
+    #cv2.imshow('template', image2)
+    gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+
+    res = cv2.matchTemplate(gray1, gray2, cv2.TM_CCOEFF_NORMED)
+    threshold = 0.35
+    flag = False
+    if np.amax(res) > threshold:
+        flag = True
+
+    return flag

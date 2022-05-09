@@ -22,13 +22,13 @@ FRAME_TIME_QUEUE_SIZE = 10
 
 
 class Capture:
-    def __init__(self, ret_list):
+    def __init__(self, ret_queue):
         self.frame_rate = Capturing.get_frame_rate()
         self.max_screenshots = NN.get_time_steps()
         self.resolution = Capturing.get_resolution()
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
-        self.screenshot_list = ret_list
+        self.screenshot_list = ret_queue
 
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
 
@@ -52,8 +52,6 @@ class Capture:
 
             if any(self.resolution):
                 image = image_utils.scale_image(image, self.resolution)
-            else:
-                image = image
 
             #start = time.time()
             self.put_data(image)
@@ -77,10 +75,10 @@ class Capture:
         :return:
         """
         try:
-            self.screenshot_list.append(data)
+            if self.screenshot_list.full():
+                self.screenshot_list.get()
 
-            if len(self.screenshot_list) > self.max_screenshots:
-                self.screenshot_list.pop(0)
+            self.screenshot_list.put(data)
         except FileNotFoundError:
             print("Pipeline dead.")
             self.killed = True
@@ -89,7 +87,7 @@ class Capture:
         zeros = np.zeros((500, 500, 3), dtype=np.uint8)
         self.put_data(zeros)
 
-        _ = [self.put_data(zeros) for _ in range(self.max_screenshots)]
+        #_ = [self.put_data(zeros) for _ in range(self.max_screenshots)]
 
         capture_process = threading.Thread(target=self.capture_latest)
         capture_process.start()

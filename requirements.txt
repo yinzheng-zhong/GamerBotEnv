@@ -5,3 +5,5 @@ pyautogui
 opencv-python
 pillow
 pytesseract
+mss
+pynput
