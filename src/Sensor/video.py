@@ -10,6 +10,9 @@ import pyautogui
 import threading
 import time
 import numpy as np
+from mss import mss
+
+from PIL import Image
 
 from src.Helper.config_reader import NN, Capturing
 import src.Utils.image as image_utils
@@ -23,14 +26,9 @@ class Capture:
         self.max_screenshots = NN.get_time_steps()
         self.resolution = Capturing.get_resolution()
 
-        #self.screenshot_list = collections.deque(maxlen=self.max_screenshots)
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
         self.screenshot_list = None
 
-        # initialize the deque
-        # self.screenshot_list.extend(
-        #     [np.zeros((self.resolution[0], self.resolution[1], 3), dtype=np.uint8)] * self.max_screenshots
-        # )
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
 
         self.killed = False
@@ -41,10 +39,13 @@ class Capture:
                 break
 
             if time.time() - self.timestamps[-1] < 1 / self.frame_rate:
-                time.sleep(0.01)
                 continue
 
+            start = time.time()
+
             image = pyautogui.screenshot()
+
+            print("Capture: {}".format(time.time() - start))
             image = np.array(image).astype(np.uint8)
 
             if any(self.resolution):
@@ -52,11 +53,10 @@ class Capture:
             else:
                 image = image
 
-            # if time.time() - self.last_captured > 1 / self.frame_rate:
-            #     self.screenshot_list.append(image)
-            #     self.last_captured = time.time()
-
+            start = time.time()
             self.put_data(image)
+            print("Put data: {}".format(time.time() - start))
+
             self.timestamps.append(time.time())
 
     def print_frame_rate(self):
@@ -66,9 +66,14 @@ class Capture:
 
             mean_time = (self.timestamps[-1] - self.timestamps[0]) / (FRAME_TIME_QUEUE_SIZE - 1)
             print("Actual frame rate: {}".format(1 / mean_time))
-            time.sleep(1)
+            time.sleep(5)
 
     def put_data(self, data):
+        """
+        Put data into the list and manage the size
+        :param data:
+        :return:
+        """
         try:
             self.screenshot_list.append(data)
 
@@ -97,17 +102,17 @@ class Capture:
         capture_process.join()
         frame_rate_process.join()
 
-    def get_screenshot_series(self):
-        """
-        Returns a list of screenshots for time series prediction
-        """
-        return list(self.screenshot_list)
-
-    def get_screenshot(self):
-        """
-        Returns the latest screenshot for single prediction
-        """
-        return list(self.screenshot_list)[-1]
+    # def get_screenshot_series(self):
+    #     """
+    #     Returns a list of screenshots for time series prediction
+    #     """
+    #     return list(self.screenshot_list)
+    #
+    # def get_screenshot(self):
+    #     """
+    #     Returns the latest screenshot for single prediction
+    #     """
+    #     return list(self.screenshot_list)[-1]
 
 
 # """test"""
