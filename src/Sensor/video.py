@@ -11,6 +11,7 @@ import threading
 import time
 import numpy as np
 from mss import mss
+import cv2
 
 from PIL import Image
 
@@ -41,21 +42,22 @@ class Capture:
             if time.time() - self.timestamps[-1] < 1 / self.frame_rate:
                 continue
 
-            start = time.time()
+            #start = time.time()
 
             image = pyautogui.screenshot()
 
-            print("Capture: {}".format(time.time() - start))
+            #print("Capture: {}".format(time.time() - start))
             image = np.array(image).astype(np.uint8)
+            image = image_utils.convert_color_to_rgb(image)
 
             if any(self.resolution):
                 image = image_utils.scale_image(image, self.resolution)
             else:
                 image = image
 
-            start = time.time()
+            #start = time.time()
             self.put_data(image)
-            print("Put data: {}".format(time.time() - start))
+            #print("Put data: {}".format(time.time() - start))
 
             self.timestamps.append(time.time())
 
