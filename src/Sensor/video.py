@@ -21,7 +21,7 @@ import src.Utils.image as image_utils
 FRAME_TIME_QUEUE_SIZE = 10
 
 
-class Capture:
+class Video:
     def __init__(self, ret_queue):
         self.frame_rate = Capturing.get_frame_rate()
         self.max_screenshots = NN.get_time_steps()
