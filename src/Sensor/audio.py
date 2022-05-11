@@ -60,7 +60,7 @@ class Audio:
 
         separate_channel = np.reshape(decoded, (self.audio_sample_rate * self.audio_length, 2))
 
-        return separate_channel[:, 0], separate_channel[:, 1]
+        self.put_data((separate_channel[:, 0], separate_channel[:, 1]))
 
     def put_data(self, data):
         try:
@@ -77,6 +77,4 @@ class Audio:
             if self.killed:
                 break
 
-            self.put_data(self.get_audio())
-
-        time.sleep(0.01)  # update the queue every 10ms
+            time.sleep(0.01)  # update the queue every 10ms
