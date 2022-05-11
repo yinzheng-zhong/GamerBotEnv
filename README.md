@@ -14,3 +14,10 @@ and we can work together. Cheers
 
 #Antivirus
 Windows security is such a pain. If any file is missing, check the antivirus.
+
+# Windows
+If you have problems installing the pyaudio, use the following command:
+
+*pip install pipwin*
+
+*pipwin install pyaudio*
