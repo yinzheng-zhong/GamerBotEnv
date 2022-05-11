@@ -1,6 +1,6 @@
 """
 We collect audio in real-time and keep them in a queue for certain amount of time, say 3s, so we can use it whenever
-needed. I guess the pyaudio uses multithreading?
+needed. Can not put the audio_interface in a new process for now. Will maybe look into this in the future.
 """
 import pyaudio
 from src.Helper.config_reader import Capturing
@@ -10,8 +10,8 @@ import time
 
 
 class Audio:
-    def __init__(self, ret_queue):
-        self.audio = ret_queue
+    def __init__(self):
+        #self.audio = ret_queue
 
         self.audio_format = Capturing.get_audio_format()
         self.audio_sample_rate = Capturing.get_audio_sample_rate()
@@ -60,21 +60,22 @@ class Audio:
 
         separate_channel = np.reshape(decoded, (self.audio_sample_rate * self.audio_length, 2))
 
-        self.put_data((separate_channel[:, 0], separate_channel[:, 1]))
+        #self.put_data((separate_channel[:, 0], separate_channel[:, 1]))
+        return separate_channel[:, 0], separate_channel[:, 1]
 
-    def put_data(self, data):
-        try:
-            if self.audio.full():
-                self.audio.get()
-
-            self.audio.put(data)
-        except FileNotFoundError:
-            print("Pipeline dead.")
-            self.killed = True
-
-    def run(self):
-        while True:
-            if self.killed:
-                break
-
-            time.sleep(0.01)  # update the queue every 10ms
+    # def put_data(self, data):
+    #     try:
+    #         if self.audio.full():
+    #             self.audio.get()
+    #
+    #         self.audio.put(data)
+    #     except FileNotFoundError:
+    #         print("Pipeline dead.")
+    #         self.killed = True
+    #
+    # def run(self):
+    #     while True:
+    #         if self.killed:
+    #             break
+    #
+    #         time.sleep(0.01)  # update the queue every 10ms

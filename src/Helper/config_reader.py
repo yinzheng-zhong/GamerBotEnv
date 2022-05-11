@@ -1,5 +1,6 @@
 from etc.settings import Settings
 import cv2
+import pyaudio
 
 
 class NN:
@@ -19,7 +20,7 @@ class Capturing:
     def get_frame_rate():
         data = 0
         try:
-            data = Settings.capturing['frame_rate']
+            data = Settings.capturing['video_frame_rate']
         except KeyError:
             print('[ERROR] Capturing frame rate not found in config file.')
 
@@ -30,9 +31,49 @@ class Capturing:
         data = (0, 0)
 
         try:
-            data = Settings.capturing['resolution']
+            data = Settings.capturing['video_resolution']
         except KeyError:
             print('[ERROR] Capturing resolution not found in config file. Default resolution is 512x512.')
+
+        return data
+
+    @staticmethod
+    def get_audio_format():
+        data = pyaudio.paInt16
+        try:
+            data = Settings.capturing['audio_format']
+        except KeyError:
+            print('[ERROR] Capturing audio bit not found in config file. Default audio bit is 16.')
+
+        return data
+
+    @staticmethod
+    def get_audio_sample_rate():
+        data = 44100
+        try:
+            data = Settings.capturing['audio_sample_rate']
+        except KeyError:
+            print('[ERROR] Capturing audio sample rate not found in config file. Default audio sample rate is 44100.')
+
+        return data
+
+    @staticmethod
+    def get_audio_length():
+        data = 2
+        try:
+            data = Settings.capturing['audio_length']
+        except KeyError:
+            print('[ERROR] Capturing audio length not found in config file. Default audio length is 2.')
+
+        return data
+
+    @staticmethod
+    def get_audio_mixer_id():
+        data = -1
+        try:
+            data = Settings.capturing['audio_stereo_mixer_device_id']
+        except KeyError:
+            print('[ERROR] Capturing audio mixer id not found in config file. Default audio mixer id is -1.')
 
         return data
 
