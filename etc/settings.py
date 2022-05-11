@@ -1,11 +1,16 @@
 import cv2
 from pynput.keyboard import Key
+import pyaudio
 
 
 class Settings:
     capturing = {
-        'frame_rate': 30,
-        'resolution': (0, 0),  # (width, height) (0, 0) for original resolution
+        'video_frame_rate': 30,
+        'video_resolution': (0, 0),  # (width, height) (0, 0) for original resolution
+        'audio_format': pyaudio.paFloat32,
+        'audio_sample_rate': 44100,
+        'audio_length': 2,  # seconds
+        'audio_stereo_mixer_device_id': -1,  # -1 for auto detection
     }
 
     """-------------------------------------------------------------------------------------------------"""
