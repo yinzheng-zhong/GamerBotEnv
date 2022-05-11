@@ -11,3 +11,6 @@ Basically we play the game for some amount of time as a human for supervised lea
 # Plans
 Currently, this is a work in progress, and obviously, it does not work. If you have any idea please leave some comment
 and we can work together. Cheers
+
+#Antivirus
+Windows security is such a pain. If any file is missing, check the antivirus.
