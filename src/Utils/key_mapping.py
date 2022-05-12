@@ -23,6 +23,9 @@ class KeyMapping:
         self.dict_key_ind['idle'] = len(self.enabled_keys)
 
     def get_on_hot_mapping(self, key_str):
+        if key_str is None:
+            return self.get_default_mapping()
+
         vector = np.zeros(len(self.dict_key_ind), dtype=np.int8)
 
         try:
@@ -36,6 +39,9 @@ class KeyMapping:
         return vector
 
     def get_default_mapping(self):
+        """
+        This is just the idle mapping
+        """
         vector = np.zeros(len(self.dict_key_ind), dtype=np.int8)
         vector[-1] = 1
 

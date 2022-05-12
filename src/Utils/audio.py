@@ -1,4 +1,5 @@
 import wave
+import librosa
 
 
 def save_audio(audio, filename, sample_size=2, sample_rate=44100):
@@ -15,3 +16,10 @@ def save_audio(audio, filename, sample_size=2, sample_rate=44100):
     wf.writeframes(audio)
     wf.close()
 
+
+def mel_spectrogram_mono(audio, sample_rate=44100):
+    """
+    Compute mel-spectrogram
+    """
+
+    return librosa.feature.melspectrogram(y=audio, sr=sample_rate)

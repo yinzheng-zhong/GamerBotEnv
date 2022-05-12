@@ -13,6 +13,7 @@ from src.Helper.config_reader import NN
 import src.Model.feature_mapping as fm
 import src.Sensor.actions as act
 import src.Helper.constance as const
+from input_processing import InputProcessing
 
 
 class DataPipeline:
@@ -26,12 +27,13 @@ class DataPipeline:
         self.video_process = Process(target=self.video_cap.run)
         self.video_process.start()
 
-        self.last_screenshot = None  # the avoid the queue starvation
+        self.last_screenshot = self.video.get()  # the avoid the queue starvation
 
         '''initialise audio capturing process'''
         #self.audio = Queue(maxsize=1)
 
         self.audio_cap = aCap()  # aCap(self.audio)
+        self.audio_cap.run()
 
         #self.last_audio_buffer = None
 
@@ -63,33 +65,18 @@ class DataPipeline:
         self.key_mapping = KeyMapping()
 
         self.temp_data = Queue()  # for input processing. input processing will grab data  from here once available.
-
         self.dataset = Queue()  # for agent. agent will grab data from here once available.
 
-    # def print_text(self):
-    #     try:
-    #         image = self.video.get()
-    #     except IndexError:
-    #         print('waiting for image')
-    #         return
-    #
-    #     feature = img_util.load_image('target_destroyed.png')
-    #     match = fm.check_single_template(image, feature)
-    #
-    #     print(match)
-    #
-    #     if match[0]:
-    #         print('='*256)
-    #         exit(0)
+        self.input_process = InputProcessing(self.temp_data, self.dataset)
+        self.input_process_process = Process(target=self.input_process.run)
+        self.input_process_process.start()
 
     def retrieve_screenshot(self):
-        try:
-            screenshot = self.video.get(block=True, timeout=0.01)
-            self.last_screenshot = screenshot
-            return screenshot, True  # is_new
-        except Exception as e:
-            print(e)
-            return self.last_screenshot, False
+        if self.video.empty():
+            return self.last_screenshot, False  # is_new
+
+        self.last_screenshot = self.video.get()
+        return self.last_screenshot, True
 
     def retrieve_last_audio_buffer(self):
         return self.audio_cap.get_audio()
@@ -129,13 +116,18 @@ class DataPipeline:
         return key
 
     def retrieve_mouse_cursor_pos(self):
-        try:
-            x, y = self.mouse_cursor_queue.get(block=True, timeout=0.01)
-            self.last_mouse_pos = (x, y)
-            return x, y
-        except Exception as e:
-            print(e)
+        if self.mouse_cursor_queue.empty():
             return self.last_mouse_pos
+
+        self.last_mouse_pos = self.mouse_cursor_queue.get()
+        return self.last_mouse_pos
+        # try:
+        #     x, y = self.mouse_cursor_queue.get(block=True, timeout=0.01)
+        #     self.last_mouse_pos = (x, y)
+        #     return x, y
+        # except Exception as e:
+        #     print(e)
+        #     return self.last_mouse_pos
 
     def make_batch(self):
         """
@@ -147,6 +139,7 @@ class DataPipeline:
         while counter < self.batch_size:
             # only record data when getting new screenshot or actions
             # screenshot is special because even if it is not available, it will still be used to match the new actions.
+
             screenshot, is_new_sct = self.retrieve_screenshot()
 
             keyboard = self.retrieve_key_action()
@@ -161,7 +154,7 @@ class DataPipeline:
                 data['y'].append({'action': keyboard, 'cursor': cursor})
 
                 counter += 1
-                if counter >= self.batch_size - 1:
+                if counter >= self.batch_size:
                     break
 
                 data['x'].append({'screenshot': screenshot, 'audio_l': audio_l, 'audio_r': audio_r})
@@ -194,5 +187,4 @@ if __name__ == "__main__":
     while True:
         #dp.print_text()
         dp.make_batch()
-        time.sleep(0.001)
         #print("\n")

@@ -67,11 +67,11 @@ class Audio:
 
             stream = self.stream.read(self.chunk)
 
+            o = np.frombuffer(stream, dtype=audio_format)
             self.audio_buffer_queue.append(np.frombuffer(stream, dtype=audio_format))
 
     def get_audio(self):
         flattened = np.concatenate(self.audio_buffer_queue)
-        start = time.time()
 
         separate_channel = np.reshape(flattened, (self.audio_sample_rate * self.audio_length, 2))
 

@@ -1,3 +1,5 @@
+import time
+
 from pynput.keyboard import Listener as key_listener
 from pynput.mouse import Listener as mouse_listener
 
@@ -57,12 +59,15 @@ class MouseKeyMonitor:
 class MouseCursorMonitor:
     def __init__(self, queue):
         self.queue_key = queue
+        self.last_time = 0
 
     def on_move(self, x, y):
         if self.queue_key.full():
-            self.queue_key.empty()
+            self.queue_key.get()
 
-        self.queue_key.put((x, y))
+        if time.time() - self.last_time > 0.01:
+            self.queue_key.put((x, y))
+            self.last_time = time.time()
 
     def start_listening(self):
         listener = mouse_listener(on_move=self.on_move)

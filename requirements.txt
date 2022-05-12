@@ -8,3 +8,4 @@ pytesseract
 mss
 pynput
 PyAudio
+librosa

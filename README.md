@@ -18,9 +18,9 @@ will be played by the AI itself with reinforcement learning.
 # Plans
 Currently, this is a work in progress, and obviously, it does not work. You can test the current working part of code with the entry
 available in src.Model.data_pipeline.py.
-If you have any idea please leave some comment, and we can work together. Cheers
+If you have any idea please leave some comment, and we can work together. Cheers.
 
-#Antivirus
+# Antivirus
 Windows security is such a pain. If any file is missing, check the antivirus.
 
 # Windows

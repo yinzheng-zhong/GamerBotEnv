@@ -25,6 +25,11 @@ def save_image(image, path):
         print(e)
 
 
+def image_normalise(image):
+    i = np.asarray(image, np.float32)
+    return i / 255
+
+
 def convert_color_to_rgb(image):
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

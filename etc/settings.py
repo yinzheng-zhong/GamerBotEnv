@@ -10,6 +10,10 @@ class Settings:
         'audio_format': pyaudio.paFloat32,
         'audio_sample_rate': 44100,
         'audio_length': 2,  # seconds
+    }
+
+    hardware = {
+        'screen_resolution': (2560, 1440),  # Your screen resolution. Must be the actual resolution.
         'audio_stereo_mixer_device_id': -1,  # -1 for auto detection
     }
 
@@ -24,6 +28,7 @@ class Settings:
     neural_network = {
         'time_steps': 2,
         'batch_size': 64,
+        'screenshot_input_dim': (1280, 720),
     }
 
     """-------------------------------------------------------------------------------------------------"""

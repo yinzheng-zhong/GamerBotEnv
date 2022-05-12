@@ -24,6 +24,16 @@ class NN:
 
         return data
 
+    @staticmethod
+    def get_screenshot_input_dim():
+        data = (1280, 720)
+        try:
+            data = Settings.neural_network['screenshot_input_dim']
+        except KeyError:
+            print('[ERROR] Neural network screenshot input dim not found in config file.')
+
+        return data
+
 
 class Capturing:
     @staticmethod
@@ -77,11 +87,29 @@ class Capturing:
 
         return data
 
+
+class Hardware:
+    @staticmethod
+    def get_screen_res():
+        data = (0, 0)
+
+        try:
+            data = Settings.hardware['screen_resolution']
+        except KeyError:
+            print('[ERROR] Hardware screen resolution not found in config file.')
+
+        if not all(data):
+            raise ValueError('[ERROR] Hardware screen resolution not found in config file.')
+
+        return data
+
+
+
     @staticmethod
     def get_audio_mixer_id():
         data = -1
         try:
-            data = Settings.capturing['audio_stereo_mixer_device_id']
+            data = Settings.hardware['audio_stereo_mixer_device_id']
         except KeyError:
             print('[ERROR] Capturing audio mixer id not found in config file. Default audio mixer id is -1.')
 
