@@ -21,3 +21,4 @@ class NeuralNetwork:
         model.add(keras.layers.Flatten())
         model.add(keras.layers.Dense(64, activation='relu'))
         model.add(keras.layers.Dense(10, activation='softmax'))
+        return model

@@ -59,8 +59,10 @@ class MouseCursorMonitor:
         self.queue_key = queue
 
     def on_move(self, x, y):
-        #print('Pointer moved to {0}'.format((x, y)))
-        pass
+        if self.queue_key.full():
+            self.queue_key.empty()
+
+        self.queue_key.put((x, y))
 
     def start_listening(self):
         listener = mouse_listener(on_move=self.on_move)

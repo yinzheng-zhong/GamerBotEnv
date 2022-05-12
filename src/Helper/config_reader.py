@@ -14,6 +14,16 @@ class NN:
 
         return data
 
+    @staticmethod
+    def get_batch_size():
+        data = 64
+        try:
+            data = Settings.neural_network['batch_size']
+        except KeyError:
+            print('[ERROR] Neural network batch size not found in config file.')
+
+        return data
+
 
 class Capturing:
     @staticmethod
