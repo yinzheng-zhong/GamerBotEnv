@@ -85,20 +85,21 @@ class Video:
 
     def run(self):
         zeros = np.zeros((500, 500, 3), dtype=np.uint8)
-        self.put_data(zeros)
-
-        #_ = [self.put_data(zeros) for _ in range(self.max_screenshots)]
-
-        capture_process = threading.Thread(target=self.capture_latest)
-        capture_process.start()
-
-        print("Capture thread started")
 
         frame_rate_process = threading.Thread(target=self.print_frame_rate)
         frame_rate_process.start()
+        #frame_rate_process.join()
 
-        capture_process.join()
-        frame_rate_process.join()
+        self.put_data(zeros)
+        self.capture_latest()
+        #_ = [self.put_data(zeros) for _ in range(self.max_screenshots)]
+
+        #capture_process = threading.Thread(target=self.capture_latest)
+        #capture_process.start()
+
+        print("Capture thread started")
+
+        #capture_process.join()
 
     # def get_screenshot_series(self):
     #     """

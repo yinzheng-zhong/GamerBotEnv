@@ -22,4 +22,4 @@ def mel_spectrogram_mono(audio, sample_rate=44100):
     Compute mel-spectrogram
     """
 
-    return librosa.feature.melspectrogram(y=audio, sr=sample_rate)
+    return librosa.feature.melspectrogram(y=audio, sr=sample_rate, power=4)
