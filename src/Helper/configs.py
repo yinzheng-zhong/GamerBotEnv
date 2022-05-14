@@ -134,6 +134,16 @@ class Hardware:
 
         return data
 
+    @staticmethod
+    def get_gpu_id():
+        data = -1
+        try:
+            data = Settings.hardware['use_gpu_ids']
+        except KeyError:
+            print('[ERROR] Hardware gpu id not found in config file. Default gpu id is -1.')
+
+        return data
+
 
 class TM:
     @staticmethod

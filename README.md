@@ -24,6 +24,8 @@ If you have any idea please leave some comment, and we can work together. Cheers
 Windows security is such a pain. If any file is missing, check the antivirus.
 
 # Windows
+Use Anaconda if you want to use GPU for deap learning.
+
 If you have problems installing the pyaudio, use the following command:
 
 *pip install pipwin*

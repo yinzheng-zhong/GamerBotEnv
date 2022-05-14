@@ -11,7 +11,6 @@ import pyautogui
 import threading
 import time
 import numpy as np
-from mss import mss
 import cv2
 import src.Utils.other as other
 

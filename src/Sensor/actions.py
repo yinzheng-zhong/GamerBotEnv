@@ -12,7 +12,14 @@ class KeyMonitor:
         """data_pipeline needs to be passed to the class"""
         self.queue_key = queue
 
+        self.holding_keys = []
+
     def on_press(self, key):
+        if key in self.holding_keys:
+            return
+
+        self.holding_keys.append(key)
+
         if key is None:
             return 'None'
 
@@ -24,6 +31,9 @@ class KeyMonitor:
             self.queue_key.put((str(key), True))
 
     def on_release(self, key):
+        if key in self.holding_keys:
+            self.holding_keys.remove(key)
+
         if key is None:
             return 'None'
 

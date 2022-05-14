@@ -16,6 +16,7 @@ class Settings:
     hardware = {
         'screen_resolution': (2560, 1440),  # Your screen resolution. Must be the actual resolution.
         'audio_stereo_mixer_device_id': -1,  # -1 for auto detection
+        'use_gpu_ids': -1,  # -1 for the rest of the GPUs except the first one
     }
 
     """-------------------------------------------------------------------------------------------------"""
@@ -28,8 +29,8 @@ class Settings:
     """-------------------------------------------------------------------------------------------------"""
     neural_network = {
         'time_steps': 10,
-        'batch_size': 32,
-        'screenshot_input_dim': (1280, 720),
+        'batch_size': 16,
+        'screenshot_input_dim': (512, 512),
         'model': constance.NN_MODEL_SINGLE,
 
         'training_queue_size': 1000,

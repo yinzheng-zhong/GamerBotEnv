@@ -42,6 +42,7 @@ class Agent:
         )
 
         dataset = tf.data.Dataset.from_generator(self.gen_data, output_types=o_type)
+        dataset = dataset.shuffle(buffer_size=constance.NN_SHUFFLE_BUFFER_SIZE)
         dataset = dataset.batch(NN.get_batch_size())
 
         self.model.fit(dataset, epochs=1)

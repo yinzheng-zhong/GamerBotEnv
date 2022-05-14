@@ -53,8 +53,8 @@ class Preprocessing:
 
         if time.time() - self.last_check > 20:
             self.last_check = time.time()
-            print('Processing queue has {} items left.'.format(self.input_queue.qsize()))
-            print('Training queue has {} items left.'.format(self.output_queue.qsize()))
+            print('\033[93m\nProcessing queue has {} items left.\033[0m'.format(self.input_queue.qsize()))
+            print('\033[93m\nTraining queue has {} items left.\033[0m'.format(self.output_queue.qsize()))
 
         return {'x': (new_x[0], new_x[1], new_x[2], self.last_action, self.last_mouse),
                 'y': (new_y[0], new_y[1])}
