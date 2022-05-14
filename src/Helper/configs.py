@@ -39,9 +39,19 @@ class NN:
     def get_model_type():
         data = constance.NN_MODEL_SINGLE
         try:
-            data = Settings.neural_network['model_type']
+            data = Settings.neural_network['model']
         except KeyError:
             print('[ERROR] Neural network model type not found in config file.')
+
+        return data
+
+    @staticmethod
+    def get_training_queue_size():
+        data = 1000
+        try:
+            data = Settings.neural_network['training_queue_size']
+        except KeyError:
+            print('[ERROR] Neural network training queue size not found in config file.')
 
         return data
 
@@ -113,8 +123,6 @@ class Hardware:
             raise ValueError('[ERROR] Hardware screen resolution not found in config file.')
 
         return data
-
-
 
     @staticmethod
     def get_audio_mixer_id():

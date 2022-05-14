@@ -30,7 +30,9 @@ class Settings:
         'time_steps': 10,
         'batch_size': 32,
         'screenshot_input_dim': (1280, 720),
-        'model': constance.NN_MODEL_SINGLE
+        'model': constance.NN_MODEL_SINGLE,
+
+        'training_queue_size': 1000,
     }
 
     """-------------------------------------------------------------------------------------------------"""

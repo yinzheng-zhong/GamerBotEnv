@@ -47,13 +47,6 @@ class DataPipeline:
         self.key_act = act.KeyMonitor(self.key_queue)
         self.key_listen_proc = Process(target=self.key_act.start_listening)
 
-        # '''initialise the mouse key monitoring process'''
-        # self.mouse_key_queue = Queue()
-        #
-        # self.mouse_key = act.MouseKeyMonitor(self.mouse_key_queue)
-        # self.mouse_process = Process(target=self.mouse_key.start_listening)
-        # self.mouse_process.start()
-
         '''initialise the mouse cursor monitoring process'''
         self.mouse_cursor_queue = Queue(maxsize=1)
 
@@ -67,12 +60,13 @@ class DataPipeline:
         self.key_mapping = KeyMapping()
 
         self.temp_data = Queue()  # for input processing. input processing will grab data  from here once available.
-        self.dataset = Queue()  # for agent. agent will grab data from here once available.
+        # for agent. agent will grab data from here once available.
+        self.training_queue = Queue(maxsize=NN.get_training_queue_size())
 
-        self.input_process = Preprocessing(self.temp_data, self.dataset)
+        self.input_process = Preprocessing(self.temp_data, self.training_queue)
         self.input_process_process = Process(target=self.input_process.run)
 
-        self.agent = Agent(self.dataset)
+        self.agent = Agent(self.training_queue)
         self.agent_process = Process(target=self.agent.train)
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
@@ -108,20 +102,6 @@ class DataPipeline:
 
         except q.Empty:
             return None
-
-    # def retrieve_mouse_key_action(self):
-    #     try:
-    #         x, y, key, pressed = self.mouse_key_queue.get_nowait()
-    #         print('Key: ' + str(key), pressed)
-    #
-    #         if not pressed:
-    #             key += const.KEY_RELEASE_SUFFIX
-    #
-    #         self.last_mouse_pos = (x, y)
-    #
-    #         return key
-    #     except q.Empty:
-    #         return None
 
     def retrieve_mouse_cursor_pos(self):
         try:

@@ -6,6 +6,7 @@ from src.Helper.configs import Capturing, Hardware, NN
 import src.Helper.constance as constance
 from multiprocessing import Pool
 import time
+import queue as q
 
 
 class Preprocessing:
@@ -26,6 +27,13 @@ class Preprocessing:
     def run(self):
         while True:
             data = self.process_data()
+
+            if self.output_queue.full():
+                try:
+                    self.output_queue.get_nowait()
+                except q.Empty:
+                    pass
+
             self.output_queue.put(data)
 
     def process_data(self):
