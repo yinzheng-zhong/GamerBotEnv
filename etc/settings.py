@@ -6,7 +6,7 @@ import src.Helper.constance as constance
 
 class Settings:
     capturing = {
-        'video_frame_rate': 30,
+        'video_frame_rate': 10,
         'video_resolution': (0, 0),  # (width, height) (0, 0) for original resolution
         'audio_format': pyaudio.paFloat32,
         'audio_sample_rate': 44100,
@@ -29,9 +29,9 @@ class Settings:
     """-------------------------------------------------------------------------------------------------"""
     neural_network = {
         'time_steps': 10,
-        'batch_size': 16,
+        'batch_size': 8,
         'screenshot_input_dim': (512, 512),
-        'model': constance.NN_MODEL_SINGLE,
+        'model': constance.NN_MODEL_LSTM,
 
         'training_queue_size': 1000,
     }

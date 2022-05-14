@@ -7,7 +7,7 @@ import src.Helper.constance as constance
 class NN:
     @staticmethod
     def get_time_steps():
-        data = ''
+        data = 10
         try:
             data = Settings.neural_network['time_steps']
         except KeyError:

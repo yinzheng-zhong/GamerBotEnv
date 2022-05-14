@@ -100,7 +100,7 @@ class DataPipeline:
 
             return key
 
-        except q.Empty:
+        except (TypeError, q.Empty):
             return None
 
     def retrieve_mouse_cursor_pos(self):

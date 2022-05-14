@@ -24,17 +24,91 @@ class Preprocessing:
         self.last_mouse = np.array((0, 0))
         self.last_check = 0
 
+        self.windows = {'x': (), 'y': ()}
+        self.time_steps = NN.get_time_steps()
+
     def run(self):
-        while True:
+        if NN.get_model_type() == constance.NN_MODEL_SINGLE:
+            while True:
+                data = self.process_data()
+
+                if self.output_queue.full():
+                    try:
+                        self.output_queue.get_nowait()
+                    except q.Empty:
+                        pass
+
+                self.output_queue.put(data)
+        else:
+            while True:
+                self.init_window()
+                self.update_window()
+
+    def init_window(self):
+        """
+        Initialize the sliding window for LSTM
+        """
+        screenshot = []
+        action = []
+        mouse = []
+
+        audio_l = None
+        audio_r = None
+
+        action_out = None
+        mouse_out = None
+
+        for i in range(self.time_steps):
             data = self.process_data()
+            screenshot.append(data['x'][0])
+            action.append(data['x'][3])
+            mouse.append(data['x'][4])
 
-            if self.output_queue.full():
-                try:
-                    self.output_queue.get_nowait()
-                except q.Empty:
-                    pass
+            if i == self.time_steps - 1:
+                audio_l = data['x'][1]
+                audio_r = data['x'][2]
 
-            self.output_queue.put(data)
+                action_out = data['y'][0]
+                mouse_out = data['y'][1]
+
+        self.windows = {'screenshot': screenshot, 'action': action, 'mouse': mouse}
+
+        self.output_queue.put({
+            'x': (
+                np.asarray(screenshot, dtype=np.float32),
+                audio_l,
+                audio_r,
+                np.asarray(action, dtype=np.int8),
+                np.asarray(mouse, dtype=np.float32)
+            ),
+            'y': (action_out, mouse_out)
+        })
+
+    def update_window(self):
+        data = self.process_data()
+
+        # screenshot
+        self.windows['screenshot'].pop(0)
+        self.windows['screenshot'].append(data['x'][0])
+
+        # action
+        self.windows['action'].pop(0)
+        self.windows['action'].append(data['x'][3])
+
+        # mouse
+        self.windows['mouse'].pop(0)
+        self.windows['mouse'].append(data['x'][4])
+
+        self.output_queue.put({
+            'x': (
+                np.asarray(self.windows['screenshot'], dtype=np.float32),
+                data['x'][1],
+                data['x'][2],
+                np.asarray(self.windows['action'], dtype=np.int8),
+                np.asarray(self.windows['mouse'], dtype=np.float32)
+            ),
+            'y': (data['y'][0], data['y'][1])
+        })
 
     def process_data(self):
         data = self.input_queue.get()
