@@ -4,7 +4,7 @@ the reward.
 This is not scale-invariant matching. Feature mapping could potentially been implemented in the future.
 """
 
-from src.Helper.config_reader import TM
+from src.Helper.configs import TM
 import cv2
 import numpy as np
 import src.Utils.image as image_utils

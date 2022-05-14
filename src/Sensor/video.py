@@ -4,6 +4,7 @@ list. We some historical screenshot and a latest screenshot that has a action oc
 
 """
 import collections
+import queue as q
 from multiprocessing import Process, Manager
 
 import pyautogui
@@ -12,10 +13,9 @@ import time
 import numpy as np
 from mss import mss
 import cv2
+import src.Utils.other as other
 
-from PIL import Image
-
-from src.Helper.config_reader import NN, Capturing
+from src.Helper.configs import NN, Capturing
 import src.Utils.image as image_utils
 
 FRAME_TIME_QUEUE_SIZE = 10
@@ -36,37 +36,23 @@ class Video:
 
     def capture_latest(self):
         while True:
+            #print("Capturing latest")
             if self.killed:
                 break
 
             if time.time() - self.timestamps[-1] < 1 / self.frame_rate:
                 continue
-
-            #start = time.time()
+            self.timestamps.append(time.time())  # log start time
 
             image = pyautogui.screenshot()
 
-            #print("Capture: {}".format(time.time() - start))
             image = np.array(image).astype(np.uint8)
             image = image_utils.convert_color_to_rgb(image)
 
-            if any(self.resolution):
+            if all(self.resolution):
                 image = image_utils.scale_image(image, self.resolution)
 
-            #start = time.time()
             self.put_data(image)
-            #print("Put data: {}".format(time.time() - start))
-
-            self.timestamps.append(time.time())
-
-    def print_frame_rate(self):
-        while True:
-            if self.killed:
-                break
-
-            mean_time = (self.timestamps[-1] - self.timestamps[0]) / (FRAME_TIME_QUEUE_SIZE - 1)
-            print("Actual frame rate: {}".format(1 / mean_time))
-            time.sleep(5)
 
     def put_data(self, data):
         """
@@ -75,8 +61,11 @@ class Video:
         :return:
         """
         try:
-            if self.screenshot_list.full():
-                self.screenshot_list.get()
+            if self.screenshot_list.qsize() > 1:
+                try:
+                    self.screenshot_list.get_nowait()
+                except q.Empty:
+                    pass
 
             self.screenshot_list.put(data)
         except FileNotFoundError:
@@ -86,36 +75,10 @@ class Video:
     def run(self):
         zeros = np.zeros((500, 500, 3), dtype=np.uint8)
 
-        frame_rate_process = threading.Thread(target=self.print_frame_rate)
-        frame_rate_process.start()
-        #frame_rate_process.join()
+        frame_rate_thread = threading.Thread(target=other.print_frame_rate, args=(self.timestamps, 'Video capture'))
+        frame_rate_thread.start()
 
         self.put_data(zeros)
         self.capture_latest()
-        #_ = [self.put_data(zeros) for _ in range(self.max_screenshots)]
 
-        #capture_process = threading.Thread(target=self.capture_latest)
-        #capture_process.start()
-
-        print("Capture thread started")
-
-        #capture_process.join()
-
-    # def get_screenshot_series(self):
-    #     """
-    #     Returns a list of screenshots for time series prediction
-    #     """
-    #     return list(self.screenshot_list)
-    #
-    # def get_screenshot(self):
-    #     """
-    #     Returns the latest screenshot for single prediction
-    #     """
-    #     return list(self.screenshot_list)[-1]
-
-
-# """test"""
-# if __name__ == "__main__":
-#     capture = Capture()
-#     capture.run()
-#     print("done")
+        print("Capture process started")

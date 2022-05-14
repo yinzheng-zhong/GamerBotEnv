@@ -1,6 +1,7 @@
 import cv2
 from pynput.keyboard import Key
 import pyaudio
+import src.Helper.constance as constance
 
 
 class Settings:
@@ -26,18 +27,18 @@ class Settings:
 
     """-------------------------------------------------------------------------------------------------"""
     neural_network = {
-        'time_steps': 2,
-        'batch_size': 64,
+        'time_steps': 10,
+        'batch_size': 32,
         'screenshot_input_dim': (1280, 720),
+        'model': constance.NN_MODEL_SINGLE
     }
 
     """-------------------------------------------------------------------------------------------------"""
     keys = {
         'enabled': ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
             "a", "s", "d", "f", "g", "h", "j", "k", "l", "z", "x", "c", "v", "b", "n", "m", ",", ".",
-            "Key.space", "Key.shift", "Key.shift_r", "Key.esc", "Key.enter", "Key.backspace", "Key.tab", "Key.ctrl",
-            "Key.ctrl_r", "Key.caps_lock", "Key.page_up", "Key.page_down", "Key.end", "Key.home", "Key.delete",
-            "Key.insert", "Key.left", "Key.up", "Key.right", "Key.down", "Key.num_lock", "Key.print_screen",
+            "Key.space", "Key.shift", "Key.esc", "Key.enter", "Key.backspace", "Key.tab",
+            "Key.caps_lock", "Key.left", "Key.up", "Key.right", "Key.down", "Key.alt",
             "Key.f1", "Key.f2", "Key.f3", "Key.f4", "Key.f5", "1", "2", "3", "4", "5",
             "6", "0", "Key.ctrl_l"] + ["Button.left", "Button.right"]
     }

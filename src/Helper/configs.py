@@ -1,6 +1,7 @@
 from etc.settings import Settings
 import cv2
 import pyaudio
+import src.Helper.constance as constance
 
 
 class NN:
@@ -31,6 +32,16 @@ class NN:
             data = Settings.neural_network['screenshot_input_dim']
         except KeyError:
             print('[ERROR] Neural network screenshot input dim not found in config file.')
+
+        return data
+
+    @staticmethod
+    def get_model_type():
+        data = constance.NN_MODEL_SINGLE
+        try:
+            data = Settings.neural_network['model_type']
+        except KeyError:
+            print('[ERROR] Neural network model type not found in config file.')
 
         return data
 
@@ -139,6 +150,8 @@ class TM:
 
 
 class Keys:
+    KEY_RELEASE_SUFFIX = '_release'
+
     @staticmethod
     def get_keys_enabled():
         data = []
@@ -148,3 +161,9 @@ class Keys:
             print('[ERROR] Keys enabled not found in config file. Default is disabled.')
 
         return data
+
+    @staticmethod
+    def get_key_mapping_size():
+        from src.Utils.key_mapping import KeyMapping
+        km = KeyMapping()
+        return km.get_mapping_size()

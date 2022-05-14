@@ -5,7 +5,7 @@ needed. Can not put the audio_interface in a new process for now. Will maybe loo
 import collections
 
 import pyaudio
-from src.Helper.config_reader import Capturing, Hardware
+from src.Helper.configs import Capturing, Hardware
 import numpy as np
 import audioop
 import time

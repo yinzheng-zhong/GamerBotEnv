@@ -2,7 +2,7 @@
 The code encodes the keys from the keyboard to the on-hot encoding.
 Also it decodes the keys from the on-hot encoding to the keys.
 """
-from src.Helper.config_reader import Keys as KeysConfig
+from src.Helper.configs import Keys as KeysConfig
 import numpy as np
 import src.Helper.constance as const
 
@@ -46,3 +46,6 @@ class KeyMapping:
         vector[-1] = 1
 
         return vector
+
+    def get_mapping_size(self):
+        return len(self.get_default_mapping())
