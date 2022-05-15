@@ -13,7 +13,7 @@ from multiprocessing import Process, Manager, Queue
 
 from src.Utils import other
 from src.Utils.key_mapping import KeyMapping
-from src.Helper.configs import NN
+from src.Helper.configs import NN, Capturing
 import src.Model.feature_mapping as fm
 import src.Sensor.actions as act
 import src.Helper.constance as const
@@ -123,7 +123,7 @@ class DataPipeline:
 
         while counter < self.batch_size:
             # collect data at some rate.
-            if time.time() - self.timestamps[-1] < 1 / 20:
+            if time.time() - self.timestamps[-1] < 1 / Capturing.get_frame_rate():
                 continue
 
             self.timestamps.append(time.time())  # record start time
