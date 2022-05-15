@@ -139,7 +139,8 @@ class Preprocessing:
         audio_l = data['audio_l']
         audio_r = data['audio_r']
 
-        s_image = image_utils.scale_image(image, self.nn_screenshot_input_dim)
+        gray_image = image_utils.convert_to_grayscale(image)
+        s_image = image_utils.scale_image(gray_image, self.nn_screenshot_input_dim)
 
         norm_image = image_utils.image_normalise(s_image)
         mel_spectr_l = audio_utils.mel_spectrogram_mono(audio_l, self.audio_sample_rate)
@@ -152,10 +153,11 @@ class Preprocessing:
         s_mel_spectr_l = image_utils.scale_image(norm_mel_spectr_l, constance.NN_SOUND_SPECT_INPUT_DIM)
         s_mel_spectr_r = image_utils.scale_image(norm_mel_spectr_r, constance.NN_SOUND_SPECT_INPUT_DIM)
 
+        reshape_image = np.expand_dims(norm_image, axis=-1)
         reshape_mel_spectr_l = np.expand_dims(s_mel_spectr_l, axis=-1)
         reshape_mel_spectr_r = np.expand_dims(s_mel_spectr_r, axis=-1)
 
-        return [norm_image, reshape_mel_spectr_l, reshape_mel_spectr_r]
+        return [reshape_image, reshape_mel_spectr_l, reshape_mel_spectr_r]
 
     def process_single_output(self, data):
         key = data['action']

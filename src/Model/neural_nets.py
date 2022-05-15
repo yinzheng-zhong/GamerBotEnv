@@ -13,7 +13,7 @@ class NeuralNetwork:
         self.input_screen_dim = (
             nn_config.get_screenshot_input_dim()[1],
             nn_config.get_screenshot_input_dim()[0],
-            3
+            1
         )  # (720, 1280)
 
         self.input_sound_dim = (
@@ -35,7 +35,7 @@ class NeuralNetwork:
     def single_cnn(self):
         input_screen = keras.Input(shape=self.input_screen_dim, name='x1')
 
-        screen_conv_0 = keras.layers.Conv2D(32, (3, 3), activation='relu')(input_screen)
+        screen_conv_0 = keras.layers.Conv2D(16, (3, 3), activation='relu')(input_screen)
         screen_pool_0 = keras.layers.MaxPooling2D((2, 2))(screen_conv_0)
         screen_conv_1 = keras.layers.Conv2D(32, (3, 3), activation='relu')(screen_pool_0)
         screen_pool_1 = keras.layers.MaxPooling2D((2, 2))(screen_conv_1)
@@ -61,7 +61,7 @@ class NeuralNetwork:
         sound_pool_r_1 = keras.layers.MaxPooling2D((2, 2))(sound_conv_r_1)
         sound_flat_r = keras.layers.Flatten()(sound_pool_r_1)
 
-        feedback_action_dense = keras.layers.Dense(32, activation='relu')(input_feedback_action)
+        feedback_action_dense = keras.layers.Dense(16, activation='relu')(input_feedback_action)
         feedback_cursor_dense = keras.layers.Dense(8, activation='relu')(input_feedback_cursor)
 
         concatenated = keras.layers.concatenate([
@@ -72,7 +72,7 @@ class NeuralNetwork:
         dense_1 = keras.layers.Dense(16, activation='relu')(dense_0)
         dense_2 = keras.layers.Dense(16, activation='relu')(dense_1)
 
-        output_key = keras.layers.Dense(self.key_output_size, activation='softmax', name='y1')(dense_2)
+        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_2)
         output_cursor = keras.layers.Dense(2, activation='softmax', name='y2')(dense_2)  # for cursor
 
         model = keras.Model(
@@ -80,7 +80,7 @@ class NeuralNetwork:
             outputs=[output_key, output_cursor]
         )
 
-        model.compile(optimizer='adam', loss='categorical_crossentropy')
+        model.compile(optimizer='adam', loss='mse')
         model.summary()
 
         return model
@@ -135,7 +135,7 @@ class NeuralNetwork:
         dense_1 = keras.layers.Dense(16, activation='relu')(dense_0)
         dense_2 = keras.layers.Dense(16, activation='relu')(dense_1)
 
-        output_key = keras.layers.Dense(self.key_output_size, activation='softmax', name='y1')(dense_2)
+        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_2)
         output_cursor = keras.layers.Dense(2, activation='softmax', name='y2')(dense_2)  # for cursor
 
         model = keras.Model(
@@ -143,7 +143,7 @@ class NeuralNetwork:
             outputs=[output_key, output_cursor]
         )
 
-        model.compile(optimizer='adam', loss='categorical_crossentropy')
+        model.compile(optimizer='adam', loss='mse')
         model.summary()
 
         return model

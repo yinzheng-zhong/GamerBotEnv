@@ -1,3 +1,5 @@
+import collections
+
 import tensorflow as tf
 from src.Model.neural_nets import NeuralNetwork
 from src.Helper.configs import NN
@@ -25,7 +27,10 @@ class Agent:
         )  # (128, 128)
         self.key_output_size = key_config.get_key_mapping_size()
 
-        self.model = None
+        self.replay_memory = collections.deque(maxlen=10000)
+
+        self.pol_model = None
+        self.tgt_model = None
 
     def gen_data(self):
         while True:
@@ -34,7 +39,7 @@ class Agent:
 
     def train(self):
 
-        self.model = NeuralNetwork().model
+        self.pol_model = NeuralNetwork().model
 
         o_type = (
             (tf.float32, tf.float32, tf.float32, tf.int8, tf.float32),
@@ -42,7 +47,7 @@ class Agent:
         )
 
         dataset = tf.data.Dataset.from_generator(self.gen_data, output_types=o_type)
-        dataset = dataset.shuffle(buffer_size=constance.NN_SHUFFLE_BUFFER_SIZE)
+        #dataset = dataset.shuffle(buffer_size=constance.NN_SHUFFLE_BUFFER_SIZE)
         dataset = dataset.batch(NN.get_batch_size())
 
-        self.model.fit(dataset, epochs=1)
+        self.pol_model.fit(dataset, epochs=1)
