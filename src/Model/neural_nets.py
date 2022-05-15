@@ -91,7 +91,7 @@ class NeuralNetwork:
         """
         input_screen = keras.Input(shape=(self.time_steps, *self.input_screen_dim), name='x1')
 
-        screen_conv_lstm_0 = keras.layers.ConvLSTM2D(filters=32, kernel_size=(3, 3), activation='relu',
+        screen_conv_lstm_0 = keras.layers.ConvLSTM2D(filters=16, kernel_size=(3, 3), activation='relu',
                                                      return_sequences=True)(input_screen)
         screen_pool_lstm_0 = keras.layers.MaxPooling3D((1, 2, 2))(screen_conv_lstm_0)
         screen_conv_lstm_1 = keras.layers.ConvLSTM2D(filters=16, kernel_size=(3, 3), activation='relu')(
@@ -102,7 +102,9 @@ class NeuralNetwork:
         screen_pool_0 = keras.layers.MaxPooling2D((2, 2))(screen_conv_0)
         screen_conv_1 = keras.layers.Conv2D(16, (3, 3), activation='relu')(screen_pool_0)
         screen_pool_1 = keras.layers.MaxPooling2D((2, 2))(screen_conv_1)
-        screen_flat = keras.layers.Flatten()(screen_pool_1)
+        screen_conv_2 = keras.layers.Conv2D(8, (3, 3), activation='relu')(screen_pool_1)
+        screen_pool_2 = keras.layers.MaxPooling2D((2, 2))(screen_conv_2)
+        screen_flat = keras.layers.Flatten()(screen_pool_2)
 
         input_sound_l = keras.Input(shape=self.input_sound_dim, name='x2')
         input_sound_r = keras.Input(shape=self.input_sound_dim, name='x3')
@@ -112,17 +114,17 @@ class NeuralNetwork:
 
         sound_conv_l_0 = keras.layers.Conv2D(16, (3, 3), activation='relu')(input_sound_l)
         sound_pool_l_0 = keras.layers.MaxPooling2D((2, 2))(sound_conv_l_0)
-        sound_conv_l_1 = keras.layers.Conv2D(16, (3, 3), activation='relu')(sound_pool_l_0)
+        sound_conv_l_1 = keras.layers.Conv2D(8, (3, 3), activation='relu')(sound_pool_l_0)
         sound_pool_l_1 = keras.layers.MaxPooling2D((2, 2))(sound_conv_l_1)
         sound_flat_l = keras.layers.Flatten()(sound_pool_l_1)
 
         sound_conv_r_0 = keras.layers.Conv2D(16, (3, 3), activation='relu')(input_sound_r)
         sound_pool_r_0 = keras.layers.MaxPooling2D((2, 2))(sound_conv_r_0)
-        sound_conv_r_1 = keras.layers.Conv2D(16, (3, 3), activation='relu')(sound_pool_r_0)
+        sound_conv_r_1 = keras.layers.Conv2D(8, (3, 3), activation='relu')(sound_pool_r_0)
         sound_pool_r_1 = keras.layers.MaxPooling2D((2, 2))(sound_conv_r_1)
         sound_flat_r = keras.layers.Flatten()(sound_pool_r_1)
 
-        feedback_action_dense = keras.layers.LSTM(32, activation='relu')(input_feedback_action)
+        feedback_action_dense = keras.layers.LSTM(16, activation='relu')(input_feedback_action)
         feedback_cursor_dense = keras.layers.LSTM(8, activation='relu')(input_feedback_cursor)
 
         concatenated = keras.layers.concatenate([
