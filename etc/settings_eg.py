@@ -3,6 +3,10 @@ from pynput.keyboard import Key
 import pyaudio
 import src.Helper.constance as constance
 
+"""
+This is a sample settings file. rename it to settings.py before running the program.
+"""
+
 
 class Settings:
     capturing = {
@@ -28,9 +32,9 @@ class Settings:
 
     """-------------------------------------------------------------------------------------------------"""
     neural_network = {
-        'time_steps': 10,
-        'batch_size': 8,
-        'screenshot_input_dim': (512, 512),
+        'time_steps': 5,
+        'batch_size': 4,
+        'screenshot_input_dim': (320, 180),
         'model': constance.NN_MODEL_LSTM,
 
         'training_queue_size': 1000,
