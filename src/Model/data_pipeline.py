@@ -30,7 +30,7 @@ class DataPipeline:
         '''initialise the video capturing process'''
         self.video = Queue(maxsize=1)
 
-        self.video_cap = vCap(self.video)
+        self.video_cap = vCap(self.video, Capturing.get_frame_rate())
         self.video_process = Process(target=self.video_cap.run)
 
         '''initialise audio capturing process'''

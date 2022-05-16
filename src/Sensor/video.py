@@ -21,9 +21,8 @@ FRAME_TIME_QUEUE_SIZE = 10
 
 
 class Video:
-    def __init__(self, ret_queue):
-        self.frame_rate = Capturing.get_frame_rate()
-        self.max_screenshots = NN.get_time_steps()
+    def __init__(self, ret_queue, frame_rate=1):
+        self.frame_rate = frame_rate
         self.resolution = Capturing.get_resolution()
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
