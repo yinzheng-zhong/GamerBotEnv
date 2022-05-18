@@ -5,7 +5,7 @@ import collections
 MAX_SIZE = 10000
 
 
-class ReplayMemory():
+class ReplayMemory:
     def __init__(self, input_shape):
         self.mem_cntr = 0
         self.state_memory = collections.deque(maxlen=MAX_SIZE)

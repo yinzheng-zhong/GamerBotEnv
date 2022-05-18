@@ -27,7 +27,7 @@ class Settings:
     template_matching = {
         # do not use normalized ones as that almost always gives you value greater than the threshold
         'method': cv2.TM_CCOEFF_NORMED,
-        'threshold': 0.9,
+        #  'threshold': 0.9,
     }
 
     """-------------------------------------------------------------------------------------------------"""

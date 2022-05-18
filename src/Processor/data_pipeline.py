@@ -7,24 +7,21 @@ import time
 
 from src.Sensor.video import Video as vCap
 from src.Sensor.audio import Audio as aCap
-import src.Utils.image as img_util
 import queue as q
-from multiprocessing import Process, Manager, Queue
+from multiprocessing import Process, Queue
 
 from src.Utils import other
 from src.Utils.key_mapping import KeyMapping
 from src.Helper.configs import NN, Capturing
-import src.Model.feature_mapping as fm
 import src.Sensor.actions as act
 import src.Helper.constance as const
-from src.Model.input_processing import Preprocessing
-from src.Model.agent import Agent
+from src.Processor.input_processing import Preprocessing
 
 FRAME_TIME_QUEUE_SIZE = 10
 
 
 class DataPipeline:
-    def __init__(self):
+    def __init__(self, agent_class):
         self.batch_size = NN.get_batch_size()
 
         '''initialise the video capturing process'''
@@ -66,8 +63,8 @@ class DataPipeline:
         self.input_process = Preprocessing(self.temp_data, self.training_queue)
         self.input_process_process = Process(target=self.input_process.run)
 
-        self.agent = Agent(self.training_queue)
-        self.agent_process = Process(target=self.agent.train)
+        self.agent = agent_class(self.training_queue)
+        self.agent_process = Process(target=self.agent.run)
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
@@ -110,7 +107,7 @@ class DataPipeline:
         except q.Empty:
             return self.last_mouse_pos
 
-    def make_batch(self):
+    def start(self):
         """
         This is not a training batch. It is a batch that we use for speeding up the preprocessing.
         :return: {'x': [{'screenshot':, 'audio_l':, 'audio_r':}], 'y':[{'action':, 'cursor':}]}

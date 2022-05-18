@@ -60,22 +60,3 @@ def load_image(filename):
         return image
     except Exception as e:
         print(e)
-
-
-def feature_matching(image1, image2):
-    """
-    Feature matching between two images
-    :param image1:image1
-    :param image2:feature
-    """
-    #cv2.imshow('template', image2)
-    gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
-
-    res = cv2.matchTemplate(gray1, gray2, cv2.TM_CCOEFF_NORMED)
-    threshold = 0.35
-    flag = False
-    if np.amax(res) > threshold:
-        flag = True
-
-    return flag

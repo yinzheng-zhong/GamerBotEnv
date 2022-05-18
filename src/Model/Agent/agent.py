@@ -1,11 +1,9 @@
 import collections
 
 import tensorflow as tf
-from src.Model.neural_nets import NeuralNetwork
+from src.Model.NN.neural_nets import NeuralNetwork
 from src.Helper.configs import NN
 import src.Helper.constance as constance
-import numpy as np
-from threading import Thread
 from src.Helper.configs import NN as nn_config
 from src.Helper.configs import Keys as key_config
 
@@ -37,7 +35,7 @@ class Agent:
             data = self.input_queue.get()
             yield data['x'], data['y']
 
-    def train(self):
+    def run(self):
 
         self.pol_model = NeuralNetwork().model
 

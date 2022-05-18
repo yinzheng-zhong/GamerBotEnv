@@ -10,7 +10,7 @@ import numpy as np
 import src.Utils.image as image_utils
 
 
-def check_single_template(base_image, template):
+def template_matching(base_image, template):
     """
     Check if the template is in the base image.
     """

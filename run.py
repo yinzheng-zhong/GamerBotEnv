@@ -1,6 +1,7 @@
-from src.Model.data_pipeline import DataPipeline
+from src.Processor.data_pipeline import DataPipeline
 import tensorflow as tf
 from src.Helper.configs import Hardware as hw_config
+from src.Model.Agent.agent import Agent
 
 
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -24,8 +25,14 @@ if len(physical_devices) > 0:
         print('Not support mixed precision')
 
 if __name__ == "__main__":
-    dp = DataPipeline()
+    """
+    Step 1: Instantiate the data pipeline with an assigned agent. Obviously you can have you own agent
+    implementation (override) here.
+    """
+    dp = DataPipeline(Agent)
+
     while True:
-        #dp.print_text()
-        dp.make_batch()
-        #print("\n")
+        """
+        Step 2: Run the data pipeline and start everything.
+        """
+        dp.start()
