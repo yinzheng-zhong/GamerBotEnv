@@ -56,7 +56,7 @@ def extract_text(image):
 
 def load_image(filename):
     try:
-        image = cv2.imread('../../var/features/' + filename)
+        image = cv2.imread(filename)
         return image
     except Exception as e:
         print(e)

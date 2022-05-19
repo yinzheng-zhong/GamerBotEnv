@@ -14,7 +14,7 @@ import src.Helper.constance as constance
 
 
 if __name__ == "__main__":
-    path = constance.PATH_SCREENSHOT_TOOL
+    path = '../' + constance.PATH_SCREENSHOTS
     # check if var/screenshots directory exists
     if not os.path.exists(path):
         os.makedirs(path)

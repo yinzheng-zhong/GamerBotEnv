@@ -56,6 +56,18 @@ class NN:
         return data
 
 
+class Agent:
+    @staticmethod
+    def get_reward_time_gap():
+        data = 5
+        try:
+            data = Settings.agent['reward_time_gap']
+        except KeyError:
+            print('[ERROR] Agent reward gap not found in config file.')
+
+        return data
+
+
 class Capturing:
     @staticmethod
     def get_frame_rate():

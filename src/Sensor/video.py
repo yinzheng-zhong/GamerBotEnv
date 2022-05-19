@@ -59,7 +59,7 @@ class Video:
         :return:
         """
         try:
-            if self.screenshot_list.qsize() > 1:
+            if self.screenshot_list.full():
                 try:
                     self.screenshot_list.get_nowait()
                 except q.Empty:
