@@ -59,13 +59,16 @@ class Video:
         :return:
         """
         try:
-            if self.screenshot_list.full():
+            try:
+                self.screenshot_list.put_nowait(data)
+            except q.Full:
                 try:
                     self.screenshot_list.get_nowait()
                 except q.Empty:
                     pass
 
-            self.screenshot_list.put(data)
+                self.screenshot_list.put(data)
+
         except FileNotFoundError:
             print("Pipeline dead.")
             self.killed = True
