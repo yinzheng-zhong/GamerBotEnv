@@ -69,18 +69,20 @@ class NeuralNetwork:
         ])
 
         dense_0 = keras.layers.Dense(16, activation='relu')(concatenated)
-        dense_1 = keras.layers.Dense(16, activation='relu')(dense_0)
-        dense_2 = keras.layers.Dense(16, activation='relu')(dense_1)
+        dense_1 = keras.layers.Dense(32, activation='relu')(dense_0)
 
-        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_2)
-        output_cursor = keras.layers.Dense(2, activation='softmax', name='y2')(dense_2)  # for cursor
+        dense_out_1 = keras.layers.Dense(24, activation='relu')(dense_1)
+        dense_out_2 = keras.layers.Dense(16, activation='relu')(dense_1)
+
+        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_out_1)
+        output_cursor = keras.layers.Dense(2, activation='relu', name='y2')(dense_out_2)  # for cursor
 
         model = keras.Model(
             inputs=[input_screen, input_sound_l, input_sound_r, input_feedback_action, input_feedback_cursor],
             outputs=[output_key, output_cursor]
         )
 
-        model.compile(optimizer='adam', loss='mse')
+        model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mse', metrics=['accuracy'])
         model.summary()
 
         return model
@@ -132,18 +134,20 @@ class NeuralNetwork:
         ])
 
         dense_0 = keras.layers.Dense(16, activation='relu')(concatenated)
-        dense_1 = keras.layers.Dense(16, activation='relu')(dense_0)
-        dense_2 = keras.layers.Dense(16, activation='relu')(dense_1)
+        dense_1 = keras.layers.Dense(32, activation='relu')(dense_0)
 
-        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_2)
-        output_cursor = keras.layers.Dense(2, activation='softmax', name='y2')(dense_2)  # for cursor
+        dense_out_1 = keras.layers.Dense(32, activation='relu')(dense_1)
+        dense_out_2 = keras.layers.Dense(16, activation='relu')(dense_1)
+
+        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_out_1)
+        output_cursor = keras.layers.Dense(2, activation='relu', name='y2')(dense_out_2)  # for cursor
 
         model = keras.Model(
             inputs=[input_screen, input_sound_l, input_sound_r, input_feedback_action, input_feedback_cursor],
             outputs=[output_key, output_cursor]
         )
 
-        model.compile(optimizer='adam', loss='mse')
+        model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mse', metrics=['accuracy'])
         model.summary()
 
         return model

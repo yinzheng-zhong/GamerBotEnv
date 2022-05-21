@@ -34,6 +34,6 @@ if __name__ == "__main__":
             if frame is None:
                 break
             else:
-                filename = '{}/{}.png'.format(path, time.time())
+                filename = '{}{}.png'.format(path, time.time())
                 print('Saving screenshot to {}'.format(filename))
                 image_utils.save_image(frame, filename)

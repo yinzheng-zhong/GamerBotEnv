@@ -16,6 +16,8 @@ from src.Helper.configs import NN, Capturing
 import src.Sensor.actions as act
 import src.Helper.constance as const
 from src.Processor.input_processing import Preprocessing
+from src.Processor.reward_processing import RewardProcessing
+
 
 FRAME_TIME_QUEUE_SIZE = 10
 
@@ -30,6 +32,14 @@ class DataPipeline:
         self.video_cap = vCap(self.video, Capturing.get_frame_rate())
         self.video_process = Process(target=self.video_cap.run)
 
+        '''initialise the reward processing process'''
+        self.reward_processing_queue = Queue(maxsize=1)
+
+        self.reward_queue = Queue(maxsize=1)
+        self.reward_process = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+
+        self.reward_process_proc = Process(target=self.reward_process.run)
+
         '''initialise audio capturing process'''
         #self.audio = Queue(maxsize=1)
 
@@ -39,7 +49,7 @@ class DataPipeline:
         #self.last_audio_buffer = None
 
         '''initialise the key monitoring process'''
-        self.key_queue = Queue()
+        self.key_queue = Queue(maxsize=10)
 
         self.key_act = act.KeyMonitor(self.key_queue)
         self.key_listen_proc = Process(target=self.key_act.start_listening)
@@ -58,18 +68,19 @@ class DataPipeline:
 
         self.temp_data = Queue()  # for input processing. input processing will grab data  from here once available.
         # for agent. agent will grab data from here once available.
-        self.training_queue = Queue(maxsize=NN.get_training_queue_size())
+        self.processed_state_action_queue = Queue(maxsize=100)
 
-        self.input_process = Preprocessing(self.temp_data, self.training_queue)
+        self.input_process = Preprocessing(self.temp_data, self.processed_state_action_queue)
         self.input_process_process = Process(target=self.input_process.run)
 
-        self.agent = agent_class(self.training_queue)
+        self.agent = agent_class(self.processed_state_action_queue)
         self.agent_process = Process(target=self.agent.run)
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
 
         self.video_process.start()
+        self.reward_process_proc.start()
         self.key_listen_proc.start()
         self.mouse_cursor_process.start()
         self.input_process_process.start()
@@ -80,9 +91,26 @@ class DataPipeline:
     def retrieve_screenshot(self):
         try:
             self.last_screenshot = self.video.get_nowait()
-            return self.last_screenshot
         except q.Empty:
-            return self.last_screenshot
+            pass
+
+        if self.reward_processing_queue.full():
+            try:
+                self.reward_processing_queue.get_nowait()
+            except q.Empty:
+                pass
+
+        self.reward_processing_queue.put(self.last_screenshot)
+
+        return self.last_screenshot
+
+    def retrieve_reward(self):
+        try:
+            return self.reward_queue.get_nowait()
+        except q.Empty:
+            pass
+
+        return 0
 
     def retrieve_last_audio_buffer(self):
         return self.audio_cap.get_audio()
@@ -125,15 +153,15 @@ class DataPipeline:
 
             self.timestamps.append(time.time())  # record start time
 
-            screenshot = self.retrieve_screenshot()
-
             key = self.retrieve_key_action()
 
+            screenshot = self.retrieve_screenshot()
+            reward = self.retrieve_reward()
             # cursor and audio are basically always available.
             audio_l, audio_r = self.retrieve_last_audio_buffer()
             cursor = self.retrieve_mouse_cursor_pos()
 
-            x = {'screenshot': screenshot, 'audio_l': audio_l, 'audio_r': audio_r}
-            y = {'action': key, 'cursor': cursor}
+            state = {'screenshot': screenshot, 'audio_l': audio_l, 'audio_r': audio_r}
+            action = {'action': key, 'cursor': cursor}
 
-            self.temp_data.put({'x': x, 'y': y})
+            self.temp_data.put({'state': state, 'action': action, 'reward': reward})

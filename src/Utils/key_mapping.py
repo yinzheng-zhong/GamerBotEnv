@@ -9,7 +9,7 @@ import src.Helper.constance as const
 
 class KeyMapping:
     def __init__(self):
-        self.enabled_keys = KeysConfig.get_keys_enabled()
+        self.enabled_keys = KeysConfig.get_keys_enabled() + ['idle']
         self.dict_key_ind = {}
 
         index = 0
@@ -19,8 +19,6 @@ class KeyMapping:
 
             self.dict_key_ind[self.enabled_keys[i] + const.KEY_RELEASE_SUFFIX] = index
             index += 1
-
-        self.dict_key_ind['idle'] = len(self.enabled_keys)
 
     def get_on_hot_mapping(self, key_str):
         if key_str is None:
@@ -37,6 +35,10 @@ class KeyMapping:
         vector[index] = 1
 
         return vector
+
+    def get_key_from_on_hot_mapping(self, on_hot_mapping):
+        index = np.argmax(on_hot_mapping)
+        return self.enabled_keys[index]
 
     def get_default_mapping(self):
         """

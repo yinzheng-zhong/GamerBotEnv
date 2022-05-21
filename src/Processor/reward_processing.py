@@ -15,7 +15,7 @@ class RewardProcessing:
     The class use template matching to identify the reward. The reward will be put into a queue.
     """
 
-    def __init__(self, image_queue, reward_queue, detailed_print=False):
+    def __init__(self, image_queue, reward_queue, template_dir, detailed_print=False):
         """
         Initialize the class.
         :param image_queue: Queue
@@ -26,9 +26,9 @@ class RewardProcessing:
         self._reward_queue = reward_queue
         self.testing = detailed_print
 
-        self.template_folder = '../' + constance.PATH_TEMPLATES + '/'
+        self.template_folder = template_dir
 
-        self._last_screenshot = self._image_queue.get()
+        self._last_screenshot = None
 
         self.templates = {}
         self._load_templates()
@@ -41,13 +41,13 @@ class RewardProcessing:
         :param data:
         :return:
         """
-        if self._reward_queue.full():
+        if self._reward_queue.full() and data != 0:  # != 0 makes sure the reward won't be missed.
             try:
                 self._reward_queue.get_nowait()
             except q.Empty:
                 pass
 
-            self._reward_queue.put(data)
+        self._reward_queue.put(data)
 
     def _load_templates(self):
         try:
@@ -65,14 +65,14 @@ class RewardProcessing:
 
     def _check_reward(self, pool):
         start = time.time()
-        last_screenshot = self._image_queue.get()
+        self._last_screenshot = self._image_queue.get()
 
         list_property = map(lambda x: x.split('+'), self.templates.keys())
         names, thresholds, rewards = zip(*list_property)
 
         zipped = zip(
             names,
-            [last_screenshot] * len(names),
+            [self._last_screenshot] * len(names),
             self.templates.values(),
             [self.testing] * len(self.templates.keys())
         )
@@ -110,9 +110,11 @@ class RewardProcessing:
 
     def run(self):
         pool = Pool(processes=4)
+        print("Starting reward checker.")
 
         while True:
             total_reward = self._check_reward(pool)
+            self.put_data(total_reward)
+
             if total_reward > 0:
-                self.put_data(total_reward)
                 print(f"\033[93m\nTotal reward: {total_reward}\033[0m")

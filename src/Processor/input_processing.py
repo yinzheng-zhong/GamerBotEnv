@@ -24,10 +24,11 @@ class Preprocessing:
         self.last_mouse = np.array((0, 0))
         self.last_check = 0
 
-        self.windows = {'x': (), 'y': ()}
+        self.windows = {}
         self.time_steps = NN.get_time_steps()
 
     def run(self):
+        print('Input preprocessing started')
         if NN.get_model_type() == constance.NN_MODEL_SINGLE:
             while True:
                 data = self.process_data()
@@ -58,30 +59,35 @@ class Preprocessing:
         action_out = None
         mouse_out = None
 
+        reward = None
+
         for i in range(self.time_steps):
             data = self.process_data()
-            screenshot.append(data['x'][0])
-            action.append(data['x'][3])
-            mouse.append(data['x'][4])
+            screenshot.append(data['state'][0])
+            action.append(data['state'][3])
+            mouse.append(data['state'][4])
 
             if i == self.time_steps - 1:
-                audio_l = data['x'][1]
-                audio_r = data['x'][2]
+                audio_l = data['state'][1]
+                audio_r = data['state'][2]
 
-                action_out = data['y'][0]
-                mouse_out = data['y'][1]
+                action_out = data['action'][0]
+                mouse_out = data['action'][1]
+
+                reward = data['reward']
 
         self.windows = {'screenshot': screenshot, 'action': action, 'mouse': mouse}
 
         self.output_queue.put({
-            'x': (
+            'state': (
                 np.asarray(screenshot, dtype=np.float32),
                 audio_l,
                 audio_r,
                 np.asarray(action, dtype=np.int8),
                 np.asarray(mouse, dtype=np.float32)
             ),
-            'y': (action_out, mouse_out)
+            'action': (action_out, mouse_out),
+            'reward': reward
         })
 
     def update_window(self):
@@ -89,38 +95,39 @@ class Preprocessing:
 
         # screenshot
         self.windows['screenshot'].pop(0)
-        self.windows['screenshot'].append(data['x'][0])
+        self.windows['screenshot'].append(data['state'][0])
 
         # action
         self.windows['action'].pop(0)
-        self.windows['action'].append(data['x'][3])
+        self.windows['action'].append(data['state'][3])
 
         # mouse
         self.windows['mouse'].pop(0)
-        self.windows['mouse'].append(data['x'][4])
+        self.windows['mouse'].append(data['state'][4])
 
         self.output_queue.put({
-            'x': (
+            'state': (
                 np.asarray(self.windows['screenshot'], dtype=np.float32),
-                data['x'][1],
-                data['x'][2],
+                data['state'][1],
+                data['state'][2],
                 np.asarray(self.windows['action'], dtype=np.int8),
                 np.asarray(self.windows['mouse'], dtype=np.float32)
             ),
-            'y': (data['y'][0], data['y'][1])
+            'action': (data['action'][0], data['action'][1]),
+            'reward': data['reward']
         })
 
     def process_data(self):
         data = self.input_queue.get()
 
-        x = data['x']  # a batch of input values
-        y = data['y']  # a batch of target values
+        state = data['state']  # a batch of input values
+        action = data['action']  # a batch of target values
 
-        #new_x = list(map(self.process_single_input, x))
-        #new_y = list(map(self.process_single_output, y))
+        #new_x = list(map(self.process_single_input, state))
+        #new_y = list(map(self.process_single_output, action))
 
-        new_x = self.process_single_input(x)
-        new_y = self.process_single_output(y)
+        new_x = self._process_single_state(state)
+        new_y = self._process_single_action(action)
 
         self.last_action = new_y[0]
         self.last_mouse = new_y[1]
@@ -130,10 +137,11 @@ class Preprocessing:
             print('\033[93m\nProcessing queue has {} items left.\033[0m'.format(self.input_queue.qsize()))
             print('\033[93m\nTraining queue has {} items left.\033[0m'.format(self.output_queue.qsize()))
 
-        return {'x': (new_x[0], new_x[1], new_x[2], self.last_action, self.last_mouse),
-                'y': (new_y[0], new_y[1])}
+        return {'state': (new_x[0], new_x[1], new_x[2], self.last_action, self.last_mouse),
+                'action': (new_y[0], new_y[1]),
+                'reward': data['reward']}
 
-    def process_single_input(self, data):
+    def _process_single_state(self, data):
         image = data['screenshot']
 
         audio_l = data['audio_l']
@@ -159,7 +167,7 @@ class Preprocessing:
 
         return [reshape_image, reshape_mel_spectr_l, reshape_mel_spectr_r]
 
-    def process_single_output(self, data):
+    def _process_single_action(self, data):
         key = data['action']
         cursor_pos = data['cursor']
 

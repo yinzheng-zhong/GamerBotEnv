@@ -5,5 +5,6 @@ NN_MODEL_SINGLE = 10001
 NN_MODEL_LSTM = 10002
 NN_SHUFFLE_BUFFER_SIZE = 500
 
-PATH_SCREENSHOTS = 'var/screenshots'
-PATH_TEMPLATES = 'var/templates'
+PATH_SCREENSHOTS = 'var/screenshots/'
+PATH_TEMPLATES = 'var/templates/'
+PATH_NN_WEIGHTS = 'var/nn_weights/'

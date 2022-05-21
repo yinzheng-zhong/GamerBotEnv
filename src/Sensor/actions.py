@@ -57,29 +57,10 @@ class KeyMonitor:
 
         listener_key.start()
         listener_mouse.start()
+        print('Starting key listener')
 
         listener_key.join()
         listener_mouse.join()
-
-
-class MouseKeyMonitor:
-    """
-    Not used anymore
-    """
-    def __init__(self, queue):
-        self.queue_key = queue
-
-    def on_click(self, x, y, button, pressed):
-        print('{0} at {1} with {2}'.format(
-            'Mouse Pressed' if pressed else 'Released',
-            (x, y), button))
-
-        self.queue_key.put((x, y, str(button), pressed))
-
-    def start_listening(self):
-        listener = mouse_listener(on_click=self.on_click)
-        listener.start()
-        listener.join()
 
 
 class MouseCursorMonitor:
@@ -88,13 +69,15 @@ class MouseCursorMonitor:
         self.last_time = 0
 
     def on_move(self, x, y):
-        if self.queue_key.full():
-            try:
-                self.queue_key.get_nowait()
-            except q.Empty:
-                pass
+        if time.time() - self.last_time > 0.01:
+            self.last_time = time.time()
+            if self.queue_key.full():
+                try:
+                    self.queue_key.get_nowait()
+                except q.Empty:
+                    pass
 
-        self.queue_key.put((x, y))
+            self.queue_key.put((x, y))
 
         # # reduce the sample rate and limit to 100 samples per second
         # if time.time() - self.last_time > 0.01:
@@ -104,4 +87,5 @@ class MouseCursorMonitor:
     def start_listening(self):
         listener = mouse_listener(on_move=self.on_move)
         listener.start()
+        print('Starting mouse listener')
         listener.join()

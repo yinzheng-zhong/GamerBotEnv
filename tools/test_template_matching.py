@@ -3,6 +3,7 @@ from multiprocessing import Process, Queue
 
 from src.Sensor.video import Video
 from src.Processor.reward_processing import RewardProcessing
+import src.Helper.constance as constance
 
 """
 After setting up template, capture some screenshots again. Open the screenshots and display 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     vcap_process = Process(target=vcap.run)
     vcap_process.start()
 
-    reward = RewardProcessing(cap_queue, reward_queue, detailed_print=False)
+    reward = RewardProcessing(cap_queue, reward_queue, '../' + constance.PATH_TEMPLATES, detailed_print=False)
     reward_process = Process(target=reward.run)
     reward_process.start()
 
