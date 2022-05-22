@@ -103,7 +103,6 @@ class Agent:
             current_qs = current_q_array[index]
             current_qs[np.argmax(action[0])] = new_q
 
-            # And append to our training data
             x.append(current_state)
             y.append([current_qs, current_mouse[index]])
 

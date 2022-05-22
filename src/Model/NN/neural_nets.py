@@ -68,8 +68,9 @@ class NeuralNetwork:
             screen_flat, sound_flat_l, sound_flat_r, feedback_action_dense, feedback_cursor_dense
         ])
 
-        dense_0 = keras.layers.Dense(16, activation='relu')(concatenated)
-        dense_1 = keras.layers.Dense(32, activation='relu')(dense_0)
+        dense_0 = keras.layers.Dense(12, activation='relu')(concatenated)
+        dense_0 = keras.layers.Dense(16, activation='relu')(dense_0)
+        dense_1 = keras.layers.Dense(16, activation='relu')(dense_0)
 
         dense_out_1 = keras.layers.Dense(24, activation='relu')(dense_1)
         dense_out_2 = keras.layers.Dense(16, activation='relu')(dense_1)

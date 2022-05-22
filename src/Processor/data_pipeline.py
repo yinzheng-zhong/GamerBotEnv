@@ -115,7 +115,7 @@ class DataPipeline:
         except q.Empty:
             pass
 
-        return 0
+        return 5  # default reward
 
     def retrieve_last_audio_buffer(self):
         return self.audio_cap.get_audio()
