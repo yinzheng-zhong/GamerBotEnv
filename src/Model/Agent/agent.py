@@ -13,9 +13,10 @@ from src.Utils.key_mapping import KeyMapping
 DISCOUNT = 0.99
 
 """
-This Agent isn't DQN or anything. It's just a simple agent that takes human actions and reward, and it learns from it.
-I use this to test various things.
+This Agent is NOT DQN. It's just a simple agent as a showcase that takes human actions and reward, and it learns from it.
+I use this to test various things. Please implement your own agent in agent folder that inherits from this.
 """
+
 
 class CustomCallback(tf.keras.callbacks.Callback):
     @staticmethod
@@ -61,16 +62,14 @@ class Agent:
             data = self.input_queue.get()
             yield data['state'], data['action']
 
-    @staticmethod
-    def batch_input_samples(samples):
+    def batch_input_samples(self, samples):
         data = {'x1': np.array([sample[0] for sample in samples]), 'x2': np.array([sample[1] for sample in samples]),
                 'x3': np.array([sample[2] for sample in samples]), 'x4': np.array([sample[3] for sample in samples]),
                 'x5': np.array([sample[4] for sample in samples])}
 
         return data
 
-    @staticmethod
-    def batch_output_samples(samples):
+    def batch_output_samples(self, samples):
         data = {'y1': np.array([sample[0] for sample in samples]), 'y2': np.array([sample[1] for sample in samples])}
 
         return data
@@ -87,7 +86,7 @@ class Agent:
         current_mouse = np.array([transition[1][1] for transition in batch])
 
         new_states = [transition[3] for transition in batch]
-        dataset = Agent.batch_input_samples(new_states)
+        dataset = self.batch_input_samples(new_states)
         future_q_array = self.model.predict(dataset)
 
         x = []
@@ -107,8 +106,8 @@ class Agent:
             y.append([current_qs, current_mouse[index]])
 
         self.model.fit(
-            x=Agent.batch_input_samples(x),
-            y=Agent.batch_output_samples(y),
+            x=self.batch_input_samples(x),
+            y=self.batch_output_samples(y),
             epochs=1,
             verbose=0,
             callbacks=[CustomCallback()] if self.counter % 10 == 0 else None

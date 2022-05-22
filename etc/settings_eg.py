@@ -10,17 +10,27 @@ This is a sample settings file. rename it to settings.py before running the prog
 
 class Settings:
     capturing = {
+        # Limit the frame rate. If your agent cannot catch up and the training queue is
+        # piling up, you can try reducing this value. Normally the training queue should
+        # have 0 or 1 item instead of 1 or 2.
         'video_frame_rate': 10,
-        'video_resolution': (0, 0),  # (width, height) (0, 0) for original resolution
+
+        # (width, height) (0, 0) for original resolution keep below default.
+        'video_resolution': (0, 0),
         'audio_format': pyaudio.paFloat32,
         'audio_sample_rate': 44100,
         'audio_length': 2,  # seconds
     }
 
     hardware = {
-        'screen_resolution': (2560, 1440),  # Your screen resolution. Must be the actual resolution.
-        'audio_stereo_mixer_device_id': -1,  # -1 for auto detection
-        'use_gpu_ids': -1,  # -1 for the rest of the GPUs except the first one
+        # Your screen resolution. Must be the actual resolution.
+        'screen_resolution': (2560, 1440),
+
+        # the device ID for the stereo mixer. -1 for auto detection
+        'audio_stereo_mixer_device_id': -1,
+
+        # -1 for the rest of the GPUs except the first one
+        'use_gpu_ids': -1,
     }
 
     """-------------------------------------------------------------------------------------------------"""
@@ -40,7 +50,15 @@ class Settings:
 
     """-------------------------------------------------------------------------------------------------"""
     agent = {
+        # Same reward will not be given again within the gap. Some game displays the image for a while
+        # in multiple frames. This settings prevents the agent from getting the same reward multiple times.
         'reward_time_gap': 5,
+
+        # Agent controls the keyboard. If it is set to False. the controller will discard
+        # the predicted actions
+        'agent_control': True,
+
+        'default_reward': 0
     }
 
     """-------------------------------------------------------------------------------------------------"""

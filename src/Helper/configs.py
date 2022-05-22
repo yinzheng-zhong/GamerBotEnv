@@ -67,6 +67,26 @@ class Agent:
 
         return data
 
+    @staticmethod
+    def get_agent_control():
+        data = True
+        try:
+            data = Settings.agent['agent_control']
+        except KeyError:
+            print('[ERROR] Agent control not found in config file.')
+
+        return data
+
+    @staticmethod
+    def get_default_reward():
+        data = 0
+        try:
+            data = Settings.agent['default_reward']
+        except KeyError:
+            print('[ERROR] Agent default reward not found in config file.')
+
+        return data
+
 
 class Capturing:
     @staticmethod

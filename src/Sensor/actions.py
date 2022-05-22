@@ -67,13 +67,12 @@ class KeyMonitor:
             return 'None'
 
         key_str = self.convert_to_string(key)
-        if key not in self.holding_keys:
+        if key_str not in self.holding_keys:
             self.put_data_important((key_str, True))
 
             self.last_put_key = key_str
 
-            if key_str not in self.holding_keys:
-                self.holding_keys.append(key_str)
+            self.holding_keys.append(key_str)
 
     def on_hold(self):
         while True:
@@ -82,7 +81,7 @@ class KeyMonitor:
             if len(self.holding_keys) <= 0:
                 continue
 
-            key_str = list(self.holding_keys)[-1]
+            key_str = self.holding_keys[-1]
             self.put_data_not_important((key_str, True))
 
     def on_release(self, key):
@@ -98,7 +97,10 @@ class KeyMonitor:
     def on_click(self, x, y, button, pressed):
         key_str = str(button)
         self.put_data_important((key_str, pressed))
-        self.holding_keys.append(key_str)
+        if pressed:
+            self.holding_keys.append(key_str)
+        else:
+            self.holding_keys.remove(key_str)
 
     def start_listening(self):
         listener_key = key_listener(on_press=self.on_press, on_release=self.on_release)

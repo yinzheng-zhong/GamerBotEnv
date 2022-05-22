@@ -14,7 +14,7 @@ from multiprocessing import Process, Queue
 
 from src.Utils import other
 from src.Utils.key_mapping import KeyMapping
-from src.Helper.configs import NN, Capturing
+from src.Helper.configs import NN, Capturing, Agent
 import src.Sensor.actions as act
 import src.Helper.constance as const
 from src.Processor.input_processing import Preprocessing
@@ -73,7 +73,7 @@ class DataPipeline:
 
         self.temp_data = Queue()  # for input processing. input processing will grab data  from here once available.
         # for agent. agent will grab data from here once available.
-        self.processed_state_action_queue = Queue(maxsize=100)
+        self.processed_state_action_queue = Queue(maxsize=2)
 
         self.input_process = Preprocessing(self.temp_data, self.processed_state_action_queue)
         self.input_process_process = Process(target=self.input_process.run)
@@ -107,7 +107,7 @@ class DataPipeline:
         except q.Empty:
             pass
 
-        return 5  # default reward
+        return Agent.get_default_reward()  # default reward
 
     def retrieve_last_audio_buffer(self):
         return self.audio_cap.get_audio()
