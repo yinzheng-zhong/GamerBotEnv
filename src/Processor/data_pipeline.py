@@ -30,16 +30,16 @@ class DataPipeline:
         self.batch_size = NN.get_batch_size()
 
         '''initialise the video capturing process'''
-        self.video = Queue(maxsize=1)
+        self.video_queue = Queue(maxsize=1)
+        self.reward_video_queue = Queue(maxsize=1)
 
-        self.video_cap = vCap(self.video, Capturing.get_frame_rate())
+        self.video_cap = vCap(self.video_queue, self.reward_video_queue, Capturing.get_frame_rate())
         self.video_process = Process(target=self.video_cap.run)
 
         '''initialise the reward processing process'''
-        self.reward_processing_queue = Queue(maxsize=1)
 
         self.reward_queue = Queue(maxsize=1)
-        self.reward_process_0 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+        self.reward_process_0 = RewardProcessing(self.reward_video_queue, self.reward_queue, const.PATH_TEMPLATES)
         self.reward_process_proc_0 = Process(target=self.reward_process_0.run)
 
         # self.reward_process_1 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
@@ -95,17 +95,9 @@ class DataPipeline:
 
     def retrieve_screenshot(self):
         try:
-            self.last_screenshot = self.video.get_nowait()
+            self.last_screenshot = self.video_queue.get_nowait()
         except q.Empty:
             pass
-
-        if self.reward_processing_queue.full():
-            try:
-                self.reward_processing_queue.get_nowait()
-            except q.Empty:
-                pass
-
-        self.reward_processing_queue.put(self.last_screenshot)
 
         return self.last_screenshot
 
@@ -145,14 +137,14 @@ class DataPipeline:
             self.video_process.is_alive()
         except OSError:
             print('\033[93m\nReward process is dead.\033[0m')
-            self.video_cap = vCap(self.video, Capturing.get_frame_rate())
+            self.video_cap = vCap(self.video_queue, Capturing.get_frame_rate())
             self.video_process = Process(target=self.video_cap.run)
 
         try:
             self.reward_process_proc_0.is_alive()
         except OSError:
             print('\033[93m\nReward process is dead.\033[0m')
-            self.reward_process_0 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+            self.reward_process_0 = RewardProcessing(self.reward_video_queue, self.reward_queue, const.PATH_TEMPLATES)
             self.reward_process_proc_0 = Process(target=self.reward_process_0.run)
 
         # try:

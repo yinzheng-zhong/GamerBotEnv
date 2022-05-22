@@ -21,12 +21,13 @@ FRAME_TIME_QUEUE_SIZE = 10
 
 
 class Video:
-    def __init__(self, ret_queue, frame_rate=1):
+    def __init__(self, ret_queue, reward_video_queue=None, frame_rate=1):
         self.frame_rate = frame_rate
         self.resolution = Capturing.get_resolution()
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
         self.screenshot_list = ret_queue
+        self.screenshot_list_for_reward = reward_video_queue
 
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
 
@@ -68,6 +69,17 @@ class Video:
                     pass
 
                 self.screenshot_list.put(data)
+
+            if self.screenshot_list_for_reward is not None:
+                try:
+                    self.screenshot_list_for_reward.put_nowait(data)
+                except q.Full:
+                    try:
+                        self.screenshot_list_for_reward.get_nowait()
+                    except q.Empty:
+                        pass
+
+                    self.screenshot_list_for_reward.put(data)
 
         except FileNotFoundError:
             print("Pipeline dead.")
