@@ -24,3 +24,24 @@ If you have problems installing the pyaudio, use the following command:
 *pip install pipwin*
 
 *pipwin install pyaudio*
+
+# How to use
+Currently I'm writting controller so the agent can control the system.
+
+Create the following folders under the root directory.
+
+var/
+
+var/nn_weights/
+
+var/screenshots/
+
+var/templates/
+
+var/nn_weights/ for storing your game screenshots. Run the screenshot tool under tools/screenshot.py to takes screenshots while gaming. Then select screenshots
+and crop them, then place the cropped images (templates) under var/templates folder for template matching. The template matching is used to detected the rewards.
+
+The templates needs to be placed under subfolders under var/templates/. For exampple, var/templates/target_destroyed+0.8+100/ for templates to detect target destroyed.
+Use the format "'name_of_the_reward'+'tm_threshold'+'reward_amount'/" to create these subfolders. Use _ to replace space. Save them as .png for better result. The program will read these folders automatically as long as the format is correct.
+
+All data should be passed to the input_queue in the Agent class.
