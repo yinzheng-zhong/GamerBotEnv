@@ -28,6 +28,8 @@ If you have problems installing the pyaudio, use the following command:
 # How to use
 Currently I'm writting controller so the agent can control the system.
 
+Rename the etc/settings_eg.py to settings.py and modify the settings accordingly.
+
 Create the following folders under the root directory.
 
 var/
@@ -44,4 +46,12 @@ and crop them, then place the cropped images (templates) under var/templates fol
 The templates needs to be placed under subfolders under var/templates/. For exampple, var/templates/target_destroyed+0.8+100/ for templates to detect target destroyed.
 Use the format "'name_of_the_reward'+'tm_threshold'+'reward_amount'/" to create these subfolders. Use _ to replace space. Save them as .png for better result. The program will read these folders automatically as long as the format is correct.
 
-All data should be passed to the input_queue in the Agent class.
+All data should be passed to the input_queue in the Agent class. Each sample in the input queue is a dictional of {'state': , 'action': , 'reward': }.
+
+The 'state' is a tuple (screenshot, audio_l,  audio_r, prev_key, prev_mouse) where screenshot is a n x n x 1 greyscale image ndarray; audio_l and audio_r is the ndarrays of mel-spectrogram with shape m x m x 1; the prev_key is a on-hot key encoding of the last time step; and the prev_mouse is a tupe (x, y) of last mouse location where x and y are the percentage of screen location, i.e., (0.5, 0.5) will be the center of the screen.
+
+The 'action' is a tuple with latest (key, mouse). If the agent is controlling, ignore this data. The key is the on-hot encoding key and the moues is a tuple (x, y) just like the one in the state.
+
+The 'reward' is a number that represents the latest detected reward.
+
+
