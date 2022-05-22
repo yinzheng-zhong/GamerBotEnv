@@ -8,14 +8,19 @@ import src.Helper.constance as constance
 from src.Helper.configs import NN as nn_config
 from src.Helper.configs import Keys as key_config
 from src.Model.Agent.replay_memory import ReplayMemory
+from src.Utils.key_mapping import KeyMapping
 
 DISCOUNT = 0.99
 
+"""
+This Agent isn't DQN or anything. It's just a simple agent that takes human actions and reward, and it learns from it.
+I use this to test various things.
+"""
 
 class CustomCallback(tf.keras.callbacks.Callback):
-    def on_train_end(self, logs=None):
-        keys = list(logs.keys())
-        print("Stop training; got log keys: {}".format(keys))
+    @staticmethod
+    def on_train_end(logs=None):
+        print(logs)
 
 
 class Agent:
@@ -44,9 +49,12 @@ class Agent:
             )
 
         self.model = None
+        self.weight_file = '{}weights-{}.h5'.format(constance.PATH_NN_WEIGHTS, nn_config.get_model_type())
 
         self.counter = 0
         self.got_mouse_cursor = False  # seems the mouse cursor comes very late. so we need to wait for it.
+
+        self.key_mapping = KeyMapping()
 
     def gen_data(self):
         while True:
@@ -104,12 +112,19 @@ class Agent:
             y=Agent.batch_output_samples(y),
             epochs=1,
             verbose=0,
-            callbacks=[CustomCallback()] if self.counter % 100 == 0 else None
+            callbacks=[CustomCallback()] if self.counter % 10 == 0 else None
         )
 
     def run(self):
         print('Agent is running')
         self.model = NeuralNetwork().model
+
+        try:
+            self.model.load_weights(self.weight_file)
+        except ValueError:
+            print('Model params have changed')
+        except FileNotFoundError:
+            print('Model weight file not found')
 
         current_data = self.input_queue.get()
 
@@ -117,6 +132,9 @@ class Agent:
         current_action = current_data['action']
 
         while True:
+            predicted_action = self.model.predict(self.batch_input_samples([current_state]))
+            print('\npredicted_action: {}'.format(self.key_mapping.get_key_from_on_hot_mapping(predicted_action[0][0])))
+
             '''Action prediction is done be human'''
             new_data = self.input_queue.get()
 
@@ -142,6 +160,4 @@ class Agent:
 
             if not self.counter % 100:
                 self.counter = 0
-                self.model.save_weights(
-                    '{}weights-{}.h5'.format(constance.PATH_NN_WEIGHTS, nn_config.get_model_type())
-                )
+                self.model.save_weights(self.weight_file)

@@ -12,37 +12,74 @@ class KeyMonitor:
         """data_pipeline needs to be passed to the class"""
         self.queue_key = queue
 
+        self.last_put_key = None
         self.holding_keys = []
 
-    def on_press(self, key):
-        if key in self.holding_keys:
-            return
+    def put_data_not_important(self, data):
+        """
+        Put data into the list and manage the size
+        :param data:
+        :return:
+        """
+        try:
+            try:
+                self.queue_key.put_nowait(data)
+            except q.Full:
+                pass
 
+        except FileNotFoundError:
+            print("Pipeline dead.")
+
+    def put_data_important(self, data):
+        """
+        Put data into the list and manage the size
+        :param data:
+        :return:
+        """
+        try:
+            try:
+                self.queue_key.put_nowait(data)
+            except q.Full:
+                try:
+                    self.queue_key.get_nowait()
+                except q.Empty:
+                    pass
+
+                self.queue_key.put(data)
+
+        except FileNotFoundError:
+            print("Pipeline dead.")
+
+    def convert_to_string(self, key):
+        try:
+            '''alphanumeric key'''
+            return key.char
+        except AttributeError:
+            '''special key'''
+            return str(key)
+
+    def on_press(self, key):
+        if key is None:
+            return 'None'
+
+        key_str = self.convert_to_string(key)
+        if key in self.holding_keys and self.last_put_key == key:
+            self.put_data_not_important((key_str, True))  # will just try to put the key
+        else:
+            self.put_data_important((key_str, True))  # must wait and put important key
+
+        self.last_put_key = key
         self.holding_keys.append(key)
 
+    def on_release(self, key):
         if key is None:
             return 'None'
 
-        try:
-            '''alphanumeric key'''
-            self.queue_key.put((key.char, True))
-        except AttributeError:
-            '''special key'''
-            self.queue_key.put((str(key), True))
+        key_str = self.convert_to_string(key)
+        self.put_data_important((key_str, False))
 
-    def on_release(self, key):
         if key in self.holding_keys:
             self.holding_keys.remove(key)
-
-        if key is None:
-            return 'None'
-
-        try:
-            '''alphanumeric key'''
-            self.queue_key.put((key.char, False))
-        except AttributeError:
-            '''special key'''
-            self.queue_key.put((str(key), False))
 
     def on_click(self, x, y, button, pressed):
         print('{0} at {1} with {2}'.format(

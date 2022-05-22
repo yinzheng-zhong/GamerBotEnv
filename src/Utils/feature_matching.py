@@ -20,7 +20,11 @@ def template_matching(base_image, template):
     gray_base = image_utils.convert_to_grayscale(base_image)
     gray_template = image_utils.convert_to_grayscale(template)
 
-    res = cv2.matchTemplate(gray_base, gray_template, tm_method)
+    try:
+        res = cv2.matchTemplate(gray_base, gray_template, tm_method)
+    except cv2.error as e:
+        print(e)
+        return 0
 
     if tm_method == cv2.TM_SQDIFF_NORMED or tm_method == cv2.TM_SQDIFF:
         res = 1 - res

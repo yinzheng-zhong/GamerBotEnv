@@ -40,12 +40,11 @@ class RewardProcessing:
         Put data into the list and manage the size
         :param data:
         :return:
-        """
-        if self._reward_queue.full() and data != 0:  # != 0 makes sure the reward won't be missed.
-            try:
-                self._reward_queue.get_nowait()
-            except q.Empty:
-                pass
+        """# != 0 makes sure the reward won't be missed.
+        try:
+            self._reward_queue.put_nowait(data)
+        except q.Full:
+            pass
 
         self._reward_queue.put(data)
 
@@ -109,12 +108,15 @@ class RewardProcessing:
         return max(results)
 
     def run(self):
-        pool = Pool(processes=4)
+        pool = Pool(processes=2)
         print("Starting reward checker.")
 
         while True:
+            print("Checking reward...")
             total_reward = self._check_reward(pool)
-            self.put_data(total_reward)
+            print(f"Total reward: {total_reward}")
 
             if total_reward > 0:
                 print(f"\033[93m\nTotal reward: {total_reward}\033[0m")
+                self.put_data(total_reward)
+                print("Reward given.")

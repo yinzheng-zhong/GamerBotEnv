@@ -5,6 +5,8 @@ import collections
 import threading
 import time
 
+import numpy as np
+
 from src.Sensor.video import Video as vCap
 from src.Sensor.audio import Audio as aCap
 import queue as q
@@ -24,6 +26,7 @@ FRAME_TIME_QUEUE_SIZE = 10
 
 class DataPipeline:
     def __init__(self, agent_class):
+        self.agent_class = agent_class
         self.batch_size = NN.get_batch_size()
 
         '''initialise the video capturing process'''
@@ -36,9 +39,11 @@ class DataPipeline:
         self.reward_processing_queue = Queue(maxsize=1)
 
         self.reward_queue = Queue(maxsize=1)
-        self.reward_process = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+        self.reward_process_0 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+        self.reward_process_proc_0 = Process(target=self.reward_process_0.run)
 
-        self.reward_process_proc = Process(target=self.reward_process.run)
+        # self.reward_process_1 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+        # self.reward_process_proc_1 = Process(target=self.reward_process_1.run)
 
         '''initialise audio capturing process'''
         #self.audio = Queue(maxsize=1)
@@ -49,7 +54,7 @@ class DataPipeline:
         #self.last_audio_buffer = None
 
         '''initialise the key monitoring process'''
-        self.key_queue = Queue(maxsize=10)
+        self.key_queue = Queue(maxsize=1)
 
         self.key_act = act.KeyMonitor(self.key_queue)
         self.key_listen_proc = Process(target=self.key_act.start_listening)
@@ -80,13 +85,13 @@ class DataPipeline:
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
 
         self.video_process.start()
-        self.reward_process_proc.start()
+        self.reward_process_proc_0.start()
         self.key_listen_proc.start()
         self.mouse_cursor_process.start()
         self.input_process_process.start()
         self.agent_process.start()
 
-        self.last_screenshot = self.video.get()  # the init a screenshot
+        self.last_screenshot = np.zeros((500, 500, 3), dtype=np.uint8)  # the init a screenshot
 
     def retrieve_screenshot(self):
         try:
@@ -135,18 +140,76 @@ class DataPipeline:
         except q.Empty:
             return self.last_mouse_pos
 
+    def check_procs(self):
+        try:
+            self.video_process.is_alive()
+        except OSError:
+            print('\033[93m\nReward process is dead.\033[0m')
+            self.video_cap = vCap(self.video, Capturing.get_frame_rate())
+            self.video_process = Process(target=self.video_cap.run)
+
+        try:
+            self.reward_process_proc_0.is_alive()
+        except OSError:
+            print('\033[93m\nReward process is dead.\033[0m')
+            self.reward_process_0 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+            self.reward_process_proc_0 = Process(target=self.reward_process_0.run)
+
+        # try:
+        #     self.reward_process_proc_1.is_alive()
+        # except OSError:
+        #     print('\033[93m\nReward process is dead.\033[0m')
+        #     self.reward_process_1 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
+        #     self.reward_process_proc_1 = Process(target=self.reward_process_1.run)
+
+        try:
+            self.key_listen_proc.is_alive()
+        except OSError:
+            print('\033[93m\nKey listen process is dead.\033[0m')
+            self.key_act = act.KeyMonitor(self.key_queue)
+            self.key_listen_proc = Process(target=self.key_act.start_listening)
+
+        try:
+            self.mouse_cursor_process.is_alive()
+        except OSError:
+            print('\033[93m\nMouse cursor process is dead.\033[0m')
+            self.mouse_cursor = act.MouseCursorMonitor(self.mouse_cursor_queue)
+            self.mouse_cursor_process = Process(target=self.mouse_cursor.start_listening)
+
+        if not self.input_process_process.is_alive():
+            print('\033[93m\nInput process process is dead.\033[0m')
+            self.input_process_process.start()
+
+        try:
+            self.input_process_process.is_alive()
+        except OSError:
+            print('\033[93m\nInput process process is dead.\033[0m')
+            self.input_process = Preprocessing(self.temp_data, self.processed_state_action_queue)
+            self.input_process_process = Process(target=self.input_process.run)
+
+        if not self.agent_process.is_alive():
+            print('\033[93m\nAgent process is dead.\033[0m')
+            self.agent_process.start()
+
+        try:
+            self.agent_process.is_alive()
+        except OSError:
+            print('\033[93m\nAgent process is dead.\033[0m')
+            self.agent = self.agent_class(self.processed_state_action_queue)
+            self.agent_process = Process(target=self.agent.run)
+
     def start(self):
         """
         This is not a training batch. It is a batch that we use for speeding up the preprocessing.
         :return: {'x': [{'screenshot':, 'audio_l':, 'audio_r':}], 'y':[{'action':, 'cursor':}]}
         """
-        counter = 0
 
         '''start frame rate'''
         frame_rate_thread = threading.Thread(target=other.print_frame_rate, args=(self.timestamps, 'Collection'))
         frame_rate_thread.start()
 
-        while counter < self.batch_size:
+        while True:
+            self.check_procs()
             # collect data at some rate.
             if time.time() - self.timestamps[-1] < 1 / Capturing.get_frame_rate():
                 continue
