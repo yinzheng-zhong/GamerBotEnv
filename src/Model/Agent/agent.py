@@ -1,4 +1,5 @@
 import collections
+import time
 
 import numpy as np
 import tensorflow as tf
@@ -62,17 +63,9 @@ class Agent:
             data = self.input_queue.get()
             yield data['state'], data['action']
 
-    def batch_input_samples(self, samples):
-        data = {'x1': np.array([sample[0] for sample in samples]), 'x2': np.array([sample[1] for sample in samples]),
-                'x3': np.array([sample[2] for sample in samples]), 'x4': np.array([sample[3] for sample in samples]),
-                'x5': np.array([sample[4] for sample in samples])}
-
-        return data
-
-    def batch_output_samples(self, samples):
-        data = {'y1': np.array([sample[0] for sample in samples]), 'y2': np.array([sample[1] for sample in samples])}
-
-        return data
+    def batch_samples(self, samples):
+        zip_samples = zip(*samples)
+        return [np.array(val) for val in zip_samples]
 
     def train(self):
         batch = self.replay_memory.sample()
@@ -86,7 +79,7 @@ class Agent:
         current_mouse = np.array([transition[1][1] for transition in batch])
 
         new_states = [transition[3] for transition in batch]
-        dataset = self.batch_input_samples(new_states)
+        dataset = self.batch_samples(new_states)
         future_q_array = self.model.predict(dataset)
 
         x = []
@@ -106,8 +99,8 @@ class Agent:
             y.append([current_qs, current_mouse[index]])
 
         self.model.fit(
-            x=self.batch_input_samples(x),
-            y=self.batch_output_samples(y),
+            x=self.batch_samples(x),
+            y=self.batch_samples(y),
             epochs=1,
             verbose=0,
             callbacks=[CustomCallback()] if self.counter % 10 == 0 else None
@@ -130,7 +123,7 @@ class Agent:
         current_action = current_data['action']
 
         while True:
-            predicted_action = self.model.predict(self.batch_input_samples([current_state]))
+            predicted_action = self.model.predict(self.batch_samples([current_state]))
             print('\npredicted_action: {}'.format(self.key_mapping.get_key_from_on_hot_mapping(predicted_action[0][0])))
 
             '''Action prediction is done be human'''

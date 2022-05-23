@@ -33,7 +33,7 @@ class NeuralNetwork:
             raise ValueError('Model not found')
 
     def single_cnn(self):
-        input_screen = keras.Input(shape=self.input_screen_dim, name='x1')
+        input_screen = keras.Input(shape=self.input_screen_dim, name='x0')
 
         screen_conv_0 = keras.layers.Conv2D(16, (3, 3), activation='relu')(input_screen)
         screen_pool_0 = keras.layers.MaxPooling2D((2, 2))(screen_conv_0)
@@ -43,11 +43,11 @@ class NeuralNetwork:
         screen_pool_2 = keras.layers.MaxPooling2D((2, 2))(screen_conv_2)
         screen_flat = keras.layers.Flatten()(screen_pool_2)
 
-        input_sound_l = keras.Input(shape=self.input_sound_dim, name='x2')
-        input_sound_r = keras.Input(shape=self.input_sound_dim, name='x3')
+        input_sound_l = keras.Input(shape=self.input_sound_dim, name='x1')
+        input_sound_r = keras.Input(shape=self.input_sound_dim, name='x2')
 
-        input_feedback_action = keras.Input(shape=(self.key_output_size,), name='x4')
-        input_feedback_cursor = keras.Input(shape=(2,), name='x5')
+        input_feedback_action = keras.Input(shape=(self.key_output_size,), name='x3')
+        input_feedback_cursor = keras.Input(shape=(2,), name='x4')
 
         sound_conv_l_0 = keras.layers.Conv2D(16, (3, 3), activation='relu')(input_sound_l)
         sound_pool_l_0 = keras.layers.MaxPooling2D((2, 2))(sound_conv_l_0)
@@ -75,8 +75,8 @@ class NeuralNetwork:
         dense_out_1 = keras.layers.Dense(24, activation='relu')(dense_1)
         dense_out_2 = keras.layers.Dense(16, activation='relu')(dense_1)
 
-        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_out_1)
-        output_cursor = keras.layers.Dense(2, activation='relu', name='y2')(dense_out_2)  # for cursor
+        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y0')(dense_out_1)
+        output_cursor = keras.layers.Dense(2, activation='relu', name='y1')(dense_out_2)  # for cursor
 
         model = keras.Model(
             inputs=[input_screen, input_sound_l, input_sound_r, input_feedback_action, input_feedback_cursor],
@@ -92,7 +92,7 @@ class NeuralNetwork:
         """
         lstm model. the audio part is the same as single_cnn
         """
-        input_screen = keras.Input(shape=(self.time_steps, *self.input_screen_dim), name='x1')
+        input_screen = keras.Input(shape=(self.time_steps, *self.input_screen_dim), name='x0')
 
         screen_conv_lstm_0 = keras.layers.ConvLSTM2D(filters=16, kernel_size=(3, 3), activation='relu',
                                                      return_sequences=True)(input_screen)
@@ -109,11 +109,11 @@ class NeuralNetwork:
         screen_pool_2 = keras.layers.MaxPooling2D((2, 2))(screen_conv_2)
         screen_flat = keras.layers.Flatten()(screen_pool_2)
 
-        input_sound_l = keras.Input(shape=self.input_sound_dim, name='x2')
-        input_sound_r = keras.Input(shape=self.input_sound_dim, name='x3')
+        input_sound_l = keras.Input(shape=self.input_sound_dim, name='x1')
+        input_sound_r = keras.Input(shape=self.input_sound_dim, name='x2')
 
-        input_feedback_action = keras.Input(shape=(self.time_steps, self.key_output_size), name='x4')
-        input_feedback_cursor = keras.Input(shape=(self.time_steps, 2), name='x5')
+        input_feedback_action = keras.Input(shape=(self.time_steps, self.key_output_size), name='x3')
+        input_feedback_cursor = keras.Input(shape=(self.time_steps, 2), name='x4')
 
         sound_conv_l_0 = keras.layers.Conv2D(16, (3, 3), activation='relu')(input_sound_l)
         sound_pool_l_0 = keras.layers.MaxPooling2D((2, 2))(sound_conv_l_0)
@@ -140,8 +140,8 @@ class NeuralNetwork:
         dense_out_1 = keras.layers.Dense(32, activation='relu')(dense_1)
         dense_out_2 = keras.layers.Dense(16, activation='relu')(dense_1)
 
-        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y1')(dense_out_1)
-        output_cursor = keras.layers.Dense(2, activation='relu', name='y2')(dense_out_2)  # for cursor
+        output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y0')(dense_out_1)
+        output_cursor = keras.layers.Dense(2, activation='relu', name='y1')(dense_out_2)  # for cursor
 
         model = keras.Model(
             inputs=[input_screen, input_sound_l, input_sound_r, input_feedback_action, input_feedback_cursor],
