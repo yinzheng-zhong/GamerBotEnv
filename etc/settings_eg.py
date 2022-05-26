@@ -62,11 +62,15 @@ class Settings:
     }
 
     """-------------------------------------------------------------------------------------------------"""
-    keys = {
-        'enabled': ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
+    controls = {
+        'keys': ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
             "a", "s", "d", "f", "g", "h", "j", "k", "l", "z", "x", "c", "v", "b", "n", "m", ",", ".",
             "Key.space", "Key.shift", "Key.esc", "Key.enter", "Key.backspace", "Key.tab",
             "Key.caps_lock", "Key.left", "Key.up", "Key.right", "Key.down", "Key.alt",
             "Key.f1", "Key.f2", "Key.f3", "Key.f4", "Key.f5", "1", "2", "3", "4", "5",
-            "6", "0", "Key.ctrl_l"] + ["Button.left", "Button.right"]
+            "6", "0", "Key.ctrl_l"] + ["Button.left", "Button.right"],
+
+        'mouse': [constance.MOUSE_MOVE_LEFT, constance.MOUSE_MOVE_RIGHT, constance.MOUSE_STOP_X,
+                  constance.MOUSE_MOVE_UP, constance.MOUSE_MOVE_DOWN, constance.MOUSE_STOP_Y]
     }
+

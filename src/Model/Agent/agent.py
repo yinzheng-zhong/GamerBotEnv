@@ -43,18 +43,17 @@ class Agent:
         self.key_output_size = key_config.get_key_mapping_size()
 
         self.replay_memory = ReplayMemory(NN.get_batch_size())
-        self.prediction_type = (tf.float32, tf.float32, tf.float32, tf.int8, tf.float32)
+        self.prediction_type = (tf.float32, tf.float32, tf.float32, tf.int8)
 
         self.training_type = (
                 (tf.float32, tf.float32, tf.float32, tf.int8, tf.float32),
-                (tf.int8, tf.float32)
+                tf.int8
             )
 
         self.model = None
         self.weight_file = '{}weights-{}.h5'.format(constance.PATH_NN_WEIGHTS, nn_config.get_model_type())
 
         self.counter = 0
-        self.got_mouse_cursor = False  # seems the mouse cursor comes very late. so we need to wait for it.
 
         self.key_mapping = KeyMapping()
 
@@ -76,7 +75,6 @@ class Agent:
         #current_states = [transition[0] for transition in batch]
         #dataset = Agent.batch_input_samples(current_states)
         current_q_array = np.array([transition[1][0] for transition in batch])
-        current_mouse = np.array([transition[1][1] for transition in batch])
 
         new_states = [transition[3] for transition in batch]
         dataset = self.batch_samples(new_states)
@@ -96,7 +94,7 @@ class Agent:
             current_qs[np.argmax(action[0])] = new_q
 
             x.append(current_state)
-            y.append([current_qs, current_mouse[index]])
+            y.append(current_qs)
 
         self.model.fit(
             x=self.batch_samples(x),
@@ -119,7 +117,7 @@ class Agent:
 
         current_data = self.input_queue.get()
 
-        current_state = current_data['state']
+        current_state = current_data['state'][:3]
         current_action = current_data['action']
 
         while True:
@@ -129,14 +127,8 @@ class Agent:
             '''Action prediction is done be human'''
             new_data = self.input_queue.get()
 
-            new_state = new_data['state']
+            new_state = new_data['state'][:3]
             new_action = new_data['action']
-
-            if not self.got_mouse_cursor:
-                if sum(new_action[1]):
-                    self.got_mouse_cursor = True
-                else:
-                    continue
 
             reward = new_data['reward']
 
@@ -145,7 +137,7 @@ class Agent:
             current_state = new_state
             current_action = new_action
 
-            self.train()
+            #self.train()
 
             self.counter += 1
 

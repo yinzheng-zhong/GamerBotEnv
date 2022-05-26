@@ -200,15 +200,23 @@ class TM:
 
 
 class Keys:
-    KEY_RELEASE_SUFFIX = '_release'
-
     @staticmethod
-    def get_keys_enabled():
+    def get_keys():
         data = []
         try:
-            data = Settings.keys['enabled']
+            data = Settings.controls['keys']
         except KeyError:
             print('[ERROR] Keys enabled not found in config file. Default is disabled.')
+
+        return data
+
+    @staticmethod
+    def get_mouse():
+        data = []
+        try:
+            data = Settings.controls['mouse']
+        except KeyError:
+            print('[ERROR] Mouse enabled not found in config file. Default is disabled.')
 
         return data
 

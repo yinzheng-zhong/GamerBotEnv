@@ -12,10 +12,7 @@ class ReplayMemory:
         self._memory = collections.deque(maxlen=MAX_SIZE)
 
     def sample(self):
-        if len(self._memory) < self.batch_size:
-            return None
-
-        choices = np.random.choice(len(self._memory), self.batch_size, replace=False)
+        choices = np.random.choice(len(self._memory), min(self.batch_size, len(self._memory)), replace=False)
         return [self._memory[i] for i in choices]
 
     def add(self, state, action, reward, new_state):

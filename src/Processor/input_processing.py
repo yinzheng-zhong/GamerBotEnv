@@ -21,7 +21,6 @@ class Preprocessing:
         self.key_mapper = key_mapping.KeyMapping()
 
         self.last_action = self.key_mapper.get_on_hot_mapping(None)  # feedback loop
-        self.last_mouse = np.array((0, 0))
         self.last_check = 0
 
         self.windows = {}
@@ -51,13 +50,11 @@ class Preprocessing:
         """
         screenshot = []
         action = []
-        mouse = []
 
         audio_l = None
         audio_r = None
 
         action_out = None
-        mouse_out = None
 
         reward = None
 
@@ -65,28 +62,25 @@ class Preprocessing:
             data = self.process_data()
             screenshot.append(data['state'][0])
             action.append(data['state'][3])
-            mouse.append(data['state'][4])
 
             if i == self.time_steps - 1:
                 audio_l = data['state'][1]
                 audio_r = data['state'][2]
 
-                action_out = data['action'][0]
-                mouse_out = data['action'][1]
+                action_out = data['action']
 
                 reward = data['reward']
 
-        self.windows = {'screenshot': screenshot, 'action': action, 'mouse': mouse}
+        self.windows = {'screenshot': screenshot, 'action': action}
 
         self.output_queue.put({
             'state': (
                 np.asarray(screenshot, dtype=np.float32),
                 audio_l,
                 audio_r,
-                np.asarray(action, dtype=np.int8),
-                np.asarray(mouse, dtype=np.float32)
+                np.asarray(action, dtype=np.int8)
             ),
-            'action': (action_out, mouse_out),
+            'action': action_out,
             'reward': reward
         })
 
@@ -101,19 +95,14 @@ class Preprocessing:
         self.windows['action'].pop(0)
         self.windows['action'].append(data['state'][3])
 
-        # mouse
-        self.windows['mouse'].pop(0)
-        self.windows['mouse'].append(data['state'][4])
-
         self.output_queue.put({
             'state': (
                 np.asarray(self.windows['screenshot'], dtype=np.float32),
                 data['state'][1],
                 data['state'][2],
                 np.asarray(self.windows['action'], dtype=np.int8),
-                np.asarray(self.windows['mouse'], dtype=np.float32)
             ),
-            'action': (data['action'][0], data['action'][1]),
+            'action': data['action'],
             'reward': data['reward']
         })
 
@@ -129,16 +118,15 @@ class Preprocessing:
         new_x = self._process_single_state(state)
         new_y = self._process_single_action(action)
 
-        self.last_action = new_y[0]
-        self.last_mouse = new_y[1]
+        self.last_action = new_y
 
         if time.time() - self.last_check > 20:
             self.last_check = time.time()
             print('\033[93m\nProcessing queue has {} items left.\033[0m'.format(self.input_queue.qsize()))
             print('\033[93m\nTraining queue has {} items left.\033[0m'.format(self.output_queue.qsize()))
 
-        return {'state': (new_x[0], new_x[1], new_x[2], self.last_action, self.last_mouse),
-                'action': (new_y[0], new_y[1]),
+        return {'state': (new_x[0], new_x[1], new_x[2], self.last_action),
+                'action': new_y,
                 'reward': data['reward']}
 
     def _process_single_state(self, data):
@@ -167,18 +155,7 @@ class Preprocessing:
 
         return [reshape_image, reshape_mel_spectr_l, reshape_mel_spectr_r]
 
-    def _process_single_action(self, data):
-        key = data['action']
-        cursor_pos = data['cursor']
-
+    def _process_single_action(self, key):
         key_vec = self.key_mapper.get_on_hot_mapping(key)
 
-        x_axis = cursor_pos[0] / self.screen_resolution[0]
-        if x_axis > 1:
-            x_axis = 1
-
-        y_axis = cursor_pos[1] / self.screen_resolution[1]
-        if y_axis > 1:
-            y_axis = 1
-
-        return [key_vec, np.asarray((x_axis, y_axis), dtype=np.float32)]
+        return key_vec

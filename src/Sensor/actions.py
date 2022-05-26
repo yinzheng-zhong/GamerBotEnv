@@ -4,6 +4,8 @@ from pynput.keyboard import Listener as key_listener
 from pynput.mouse import Listener as mouse_listener
 import queue as q
 from threading import Thread
+from src.Helper.constance import MOUSE_MOVE_LEFT, MOUSE_MOVE_RIGHT, MOUSE_MOVE_UP, MOUSE_MOVE_DOWN, MOUSE_STOP_X, \
+    MOUSE_STOP_Y, KEY_UNDEFINED
 
 from multiprocessing import Process, Queue
 
@@ -11,13 +13,18 @@ from src.Helper.configs import Capturing
 
 
 class KeyMonitor:
-    def __init__(self, queue):
+    def __init__(self, queue_key):
         """data_pipeline needs to be passed to the class"""
-        self.queue_key = queue
+        self.queue_key = queue_key
 
         self.last_put_key = None
         self.frame_time = 1 / Capturing.get_frame_rate()
         self.holding_keys = []
+
+        self.last_x, self.last_y, self.current_x, self.current_y = 0, 0, 0, 0
+        self.last_x_time, self.last_y_time = 0, 0
+
+        self.on_move_last_time = time.time()
 
     def put_data_not_important(self, data):
         """
@@ -64,7 +71,7 @@ class KeyMonitor:
 
     def on_press(self, key):
         if key is None:
-            return 'None'
+            return KEY_UNDEFINED
 
         key_str = self.convert_to_string(key)
         if key_str not in self.holding_keys:
@@ -78,6 +85,8 @@ class KeyMonitor:
         while True:
             time.sleep(self.frame_time)
 
+            self.check_on_not_move()
+
             if len(self.holding_keys) <= 0:
                 continue
 
@@ -86,7 +95,7 @@ class KeyMonitor:
 
     def on_release(self, key):
         if key is None:
-            return 'None'
+            return KEY_UNDEFINED
 
         key_str = self.convert_to_string(key)
         self.put_data_important((key_str, False))
@@ -102,6 +111,58 @@ class KeyMonitor:
         else:
             self.holding_keys.remove(key_str)
 
+    def convert_mouse_to_x_direction(self):
+        if self.current_x > self.last_x:
+            self.last_x_time = time.time()
+            return MOUSE_MOVE_RIGHT
+        elif self.current_x < self.last_x:
+            self.last_x_time = time.time()
+            return MOUSE_MOVE_LEFT
+
+    def convert_mouse_to_y_direction(self):
+        if self.current_y > self.last_y:
+            self.last_y_time = time.time()
+            return MOUSE_MOVE_DOWN
+        elif self.current_y < self.last_y:
+            self.last_y_time = time.time()
+            return MOUSE_MOVE_UP
+
+    def on_move(self, x, y):
+        self.on_move_last_time = time.time()
+
+        self.last_x, self.last_y = self.current_x, self.current_y
+        self.current_x, self.current_y = x, y
+
+        direction_x = self.convert_mouse_to_x_direction()
+        direction_y = self.convert_mouse_to_y_direction()
+
+        if direction_x and direction_x not in self.holding_keys:
+            self.put_data_important((direction_x, True))
+            self.holding_keys.append(direction_x)
+        if direction_y and direction_y not in self.holding_keys:
+            self.put_data_important((direction_y, True))
+            self.holding_keys.append(direction_y)
+
+    def check_on_not_move(self):
+        time.sleep(self.frame_time)
+        current_time = time.time()
+
+        if current_time > self.last_x_time:
+            if MOUSE_MOVE_RIGHT in self.holding_keys:
+                self.put_data_important((MOUSE_STOP_X, True))  # here it is True because mouse action is not key
+                self.holding_keys.remove(MOUSE_MOVE_RIGHT)
+            if MOUSE_MOVE_LEFT in self.holding_keys:
+                self.put_data_important((MOUSE_STOP_X, True))
+                self.holding_keys.remove(MOUSE_MOVE_LEFT)
+
+        if current_time > self.last_y_time:
+            if MOUSE_MOVE_DOWN in self.holding_keys:
+                self.put_data_important((MOUSE_STOP_Y, True))
+                self.holding_keys.remove(MOUSE_MOVE_DOWN)
+            if MOUSE_MOVE_UP in self.holding_keys:
+                self.put_data_important((MOUSE_STOP_Y, True))
+                self.holding_keys.remove(MOUSE_MOVE_UP)
+
     def start_listening(self):
         listener_key = key_listener(on_press=self.on_press, on_release=self.on_release)
         listener_mouse = mouse_listener(on_click=self.on_click)
@@ -112,8 +173,13 @@ class KeyMonitor:
         on_hold.start()
         print('Starting key listener')
 
+        listener = mouse_listener(on_move=self.on_move)
+        listener.start()
+        print('Starting mouse listener')
+
         listener_key.join()
         listener_mouse.join()
+        listener.join()
         on_hold.join()
 
 

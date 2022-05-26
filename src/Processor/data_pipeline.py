@@ -59,14 +59,6 @@ class DataPipeline:
         self.key_act = act.KeyMonitor(self.key_queue)
         self.key_listen_proc = Process(target=self.key_act.start_listening)
 
-        '''initialise the mouse cursor monitoring process'''
-        self.mouse_cursor_queue = Queue(maxsize=1)
-
-        self.mouse_cursor = act.MouseCursorMonitor(self.mouse_cursor_queue)
-        self.mouse_cursor_process = Process(target=self.mouse_cursor.start_listening)
-
-        self.last_mouse_pos = (0, 0)
-
         '''instantiate the key mapping class'''
 
         self.key_mapping = KeyMapping()
@@ -87,7 +79,6 @@ class DataPipeline:
         self.video_process.start()
         self.reward_process_proc_0.start()
         self.key_listen_proc.start()
-        self.mouse_cursor_process.start()
         self.input_process_process.start()
         self.agent_process.start()
 
@@ -125,13 +116,6 @@ class DataPipeline:
         except (TypeError, q.Empty):
             return None
 
-    def retrieve_mouse_cursor_pos(self):
-        try:
-            self.last_mouse_pos = self.mouse_cursor_queue.get_nowait()
-            return self.last_mouse_pos
-        except q.Empty:
-            return self.last_mouse_pos
-
     def check_procs(self):
         try:
             self.video_process.is_alive()
@@ -160,13 +144,6 @@ class DataPipeline:
             print('\033[93m\nKey listen process is dead.\033[0m')
             self.key_act = act.KeyMonitor(self.key_queue)
             self.key_listen_proc = Process(target=self.key_act.start_listening)
-
-        try:
-            self.mouse_cursor_process.is_alive()
-        except OSError:
-            print('\033[93m\nMouse cursor process is dead.\033[0m')
-            self.mouse_cursor = act.MouseCursorMonitor(self.mouse_cursor_queue)
-            self.mouse_cursor_process = Process(target=self.mouse_cursor.start_listening)
 
         if not self.input_process_process.is_alive():
             print('\033[93m\nInput process process is dead.\033[0m')
@@ -214,9 +191,7 @@ class DataPipeline:
             reward = self.retrieve_reward()
             # cursor and audio are basically always available.
             audio_l, audio_r = self.retrieve_last_audio_buffer()
-            cursor = self.retrieve_mouse_cursor_pos()
 
             state = {'screenshot': screenshot, 'audio_l': audio_l, 'audio_r': audio_r}
-            action = {'action': key, 'cursor': cursor}
 
-            self.temp_data.put({'state': state, 'action': action, 'reward': reward})
+            self.temp_data.put({'state': state, 'action': key, 'reward': reward})

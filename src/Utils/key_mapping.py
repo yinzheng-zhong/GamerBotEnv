@@ -9,7 +9,9 @@ import src.Helper.constance as const
 
 class KeyMapping:
     def __init__(self):
-        self.enabled_keys = KeysConfig.get_keys_enabled()
+        self.enabled_keys = KeysConfig.get_keys()
+        self.mouse_actions = KeysConfig.get_mouse()
+
         self.dict_key_ind = {}
 
         index = 0
@@ -18,6 +20,10 @@ class KeyMapping:
             index += 1
 
             self.dict_key_ind[self.enabled_keys[i] + const.KEY_RELEASE_SUFFIX] = index
+            index += 1
+
+        for i, action in enumerate(self.mouse_actions):
+            self.dict_key_ind[self.mouse_actions[i]] = index
             index += 1
 
         self.dict_key_ind['idle'] = index
