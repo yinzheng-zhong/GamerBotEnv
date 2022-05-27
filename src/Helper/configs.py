@@ -87,6 +87,36 @@ class Agent:
 
         return data
 
+    @staticmethod
+    def get_epsilon_decay():
+        data = 0.9999
+        try:
+            data = Settings.agent['epsilon_decay']
+        except KeyError:
+            print('[ERROR] Agent epsilon decay not found in config file.')
+
+        return data
+
+    @staticmethod
+    def get_agent_class_path_name():
+        data = ('src.Agent.Agent', 'Agent')
+        try:
+            data = Settings.agent['agent_class_path_name']
+        except KeyError:
+            print('[ERROR] Agent class path name not found in config file.')
+
+        return data
+
+    @staticmethod
+    def get_epsilon_min():
+        data = 0.01
+        try:
+            data = Settings.agent['epsilon_min']
+        except KeyError:
+            print('[ERROR] Agent epsilon min not found in config file.')
+
+        return data
+
 
 class Capturing:
     @staticmethod

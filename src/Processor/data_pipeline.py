@@ -19,6 +19,7 @@ import src.Sensor.actions as act
 import src.Helper.constance as const
 from src.Processor.input_processing import Preprocessing
 from src.Processor.reward_processing import RewardProcessing
+from src.Control.Controller import Controller
 
 
 FRAME_TIME_QUEUE_SIZE = 10
@@ -28,6 +29,7 @@ class DataPipeline:
     def __init__(self, agent_class):
         self.agent_class = agent_class
         self.batch_size = NN.get_batch_size()
+        self.agent_in_control = Agent.get_agent_control()
 
         '''initialise the video capturing process'''
         self.video_queue = Queue(maxsize=1)
@@ -56,8 +58,10 @@ class DataPipeline:
         '''initialise the key monitoring process'''
         self.key_queue = Queue(maxsize=1)
 
-        self.key_act = act.KeyMonitor(self.key_queue)
-        self.key_listen_proc = Process(target=self.key_act.start_listening)
+        ''' ony record key if human is in control '''
+        if not self.agent_in_control:
+            self.key_act = act.KeyMonitor(self.key_queue)
+            self.key_listen_proc = Process(target=self.key_act.start_listening)
 
         '''instantiate the key mapping class'''
 
@@ -65,13 +69,19 @@ class DataPipeline:
 
         self.temp_data = Queue()  # for input processing. input processing will grab data  from here once available.
         # for agent. agent will grab data from here once available.
-        self.processed_state_action_queue = Queue(maxsize=2)
+        self.processed_state_action_queue = Queue(maxsize=3)
+        self.agent_action_queue = Queue(maxsize=3)
 
         self.input_process = Preprocessing(self.temp_data, self.processed_state_action_queue)
         self.input_process_process = Process(target=self.input_process.run)
 
-        self.agent = agent_class(self.processed_state_action_queue)
+        self.agent = agent_class(self.processed_state_action_queue, self.agent_action_queue)
         self.agent_process = Process(target=self.agent.run)
+
+        ''' Only need the controller if agent is controlling'''
+        if self.agent_in_control:
+            self.controller = Controller(self.agent_action_queue)
+            self.controller_process = Process(target=self.controller.run)
 
         self.timestamps = collections.deque(maxlen=FRAME_TIME_QUEUE_SIZE)
         self.timestamps.extend(range(FRAME_TIME_QUEUE_SIZE))
@@ -81,6 +91,9 @@ class DataPipeline:
         self.key_listen_proc.start()
         self.input_process_process.start()
         self.agent_process.start()
+
+        if self.agent_in_control:
+            self.controller_process.start()
 
         self.last_screenshot = np.zeros((500, 500, 3), dtype=np.uint8)  # the init a screenshot
 
@@ -185,7 +198,11 @@ class DataPipeline:
 
             self.timestamps.append(time.time())  # record start time
 
-            key = self.retrieve_key_action()
+            # mute key if agent is controlling
+            if self.agent_in_control:
+                key = []
+            else:
+                key = self.retrieve_key_action()
 
             screenshot = self.retrieve_screenshot()
             reward = self.retrieve_reward()

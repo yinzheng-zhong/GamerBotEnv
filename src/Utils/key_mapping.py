@@ -47,7 +47,12 @@ class KeyMapping:
 
     def get_key_from_on_hot_mapping(self, on_hot_mapping):
         index = np.argmax(on_hot_mapping)
-        return self.dict_keys[index]
+        key = self.dict_keys[index]
+
+        try:
+            return const.KEY_PYNPUT_PYAUTOGUI[key]
+        except KeyError:
+            print('Key for pyautogui not found, please and the key in the constance: ', key)
 
     def get_default_mapping(self):
         """

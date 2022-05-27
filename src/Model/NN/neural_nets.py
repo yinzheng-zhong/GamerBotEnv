@@ -64,13 +64,13 @@ class NeuralNetwork:
 
         dense_0 = keras.layers.Dense(16, activation='relu')(concatenated)
         dense_1 = keras.layers.Dense(24, activation='relu')(dense_0)
-        dense_out_1 = keras.layers.Dense(24, activation='relu')(dense_1)
+        dense_out_1 = keras.layers.Dense(self.key_output_size, activation='relu')(dense_1)
 
         output_key = keras.layers.Dense(self.key_output_size, activation='linear', name='y0')(dense_out_1)
 
         model = keras.Model(
             inputs=[input_screen, input_sound_l, input_sound_r],
-            outputs=[output_key]
+            outputs=output_key
         )
 
         model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mse', metrics=['accuracy'])
@@ -133,7 +133,7 @@ class NeuralNetwork:
 
         model = keras.Model(
             inputs=[input_screen, input_sound_l, input_sound_r, input_feedback_action, input_feedback_cursor],
-            outputs=[output_key]
+            outputs=output_key
         )
 
         model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mse', metrics=['accuracy'])

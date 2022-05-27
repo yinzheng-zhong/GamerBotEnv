@@ -50,6 +50,9 @@ class Settings:
 
     """-------------------------------------------------------------------------------------------------"""
     agent = {
+        # Change this to your own agent implementation. from (tuple)[0] import (tuple)[1].
+        # Tuple format: (module_path, class_name)
+        'agent_class_path_name': ('src.Model.Agent.agent', 'Agent'),
         # Same reward will not be given again within the gap. Some game displays the image for a while
         # in multiple frames. This settings prevents the agent from getting the same reward multiple times.
         'reward_time_gap': 5,
@@ -58,7 +61,9 @@ class Settings:
         # the predicted actions
         'agent_control': True,
 
-        'default_reward': 0
+        'default_reward': 0,
+        'epsilon_decay': 0.999,
+        'epsilon_min': 0.01,
     }
 
     """-------------------------------------------------------------------------------------------------"""
@@ -70,6 +75,7 @@ class Settings:
             "Key.f1", "Key.f2", "Key.f3", "Key.f4", "Key.f5", "1", "2", "3", "4", "5",
             "6", "0", "Key.ctrl_l"] + ["Button.left", "Button.right"],
 
+        # set to [] to disable the mouse
         'mouse': [constance.MOUSE_MOVE_LEFT, constance.MOUSE_MOVE_RIGHT, constance.MOUSE_STOP_X,
                   constance.MOUSE_MOVE_UP, constance.MOUSE_MOVE_DOWN, constance.MOUSE_STOP_Y]
     }

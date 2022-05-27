@@ -1,9 +1,12 @@
 from src.Processor.data_pipeline import DataPipeline
 import tensorflow as tf
 from src.Helper.configs import Hardware as hw_config
-from src.Model.Agent.agent import Agent
+from src.Helper.configs import Agent as agent_config
 
+agent_module = agent_config.get_agent_class_path_name()
+Agent = getattr(__import__(agent_module[0], fromlist=[agent_module[1]]), agent_module[1])
 
+'''you can change the settings below'''
 physical_devices = tf.config.list_physical_devices('GPU')
 if len(physical_devices) > 0:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -24,15 +27,9 @@ if len(physical_devices) > 0:
         print(e)
         print('Not support mixed precision')
 
-if __name__ == "__main__":
-    """
-    Step 1: Instantiate the data pipeline with an assigned agent. Obviously you can have you own agent
-    implementation (override) here.
-    """
-    dp = DataPipeline(Agent)
+''' you can change the settings ABOVE '''
 
+if __name__ == "__main__":
+    dp = DataPipeline(Agent)
     while True:
-        """
-        Step 2: Run the data pipeline and start everything.
-        """
         dp.start()
