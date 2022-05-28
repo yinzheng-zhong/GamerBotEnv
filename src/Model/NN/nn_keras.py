@@ -5,6 +5,9 @@ from src.Helper.configs import Keys as key_config
 from src.Helper.configs import Hardware as hw_config
 from src.Helper import constance
 
+"""
+tensorflow 2.0 keras implementation of neural nets. Not used anymore.
+"""
 
 class NeuralNetwork:
     def __init__(self):

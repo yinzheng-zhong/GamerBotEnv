@@ -2,7 +2,7 @@ import numpy as np
 import src.Utils.image as image_utils
 import src.Utils.audio as audio_utils
 import src.Utils.key_mapping as key_mapping
-from src.Helper.configs import Capturing, Hardware, NN
+from src.Helper.configs import Capturing, Hardware, NN, Agent
 import src.Helper.constance as constance
 from multiprocessing import Pool
 import time
@@ -19,6 +19,8 @@ class Preprocessing:
         self.nn_screenshot_input_dim = NN.get_screenshot_input_dim()
 
         self.key_mapper = key_mapping.KeyMapping()
+
+        self.agent_control = Agent.get_agent_control()
 
         self.last_action = self.key_mapper.get_on_hot_mapping(None)  # feedback loop
         self.last_check = 0
@@ -116,7 +118,7 @@ class Preprocessing:
         #new_y = list(map(self.process_single_output, action))
 
         new_x = self._process_single_state(state)
-        new_y = self._process_single_action(action)
+        new_y = self._process_single_action(action) if self.agent_control else None
 
         self.last_action = new_y
 
@@ -152,6 +154,10 @@ class Preprocessing:
         reshape_image = np.expand_dims(norm_image, axis=-1)
         reshape_mel_spectr_l = np.expand_dims(s_mel_spectr_l, axis=-1)
         reshape_mel_spectr_r = np.expand_dims(s_mel_spectr_r, axis=-1)
+
+        reshape_image = np.moveaxis(reshape_image, -1, 0)
+        reshape_mel_spectr_l = np.moveaxis(reshape_mel_spectr_l, -1, 0)
+        reshape_mel_spectr_r = np.moveaxis(reshape_mel_spectr_r, -1, 0)
 
         return [reshape_image, reshape_mel_spectr_l, reshape_mel_spectr_r]
 

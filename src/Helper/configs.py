@@ -88,6 +88,16 @@ class Agent:
         return data
 
     @staticmethod
+    def get_epsilon():
+        data = 1
+        try:
+            data = Settings.agent['epsilon']
+        except KeyError:
+            print('[ERROR] Agent epsilon not found in config file.')
+
+        return data
+
+    @staticmethod
     def get_epsilon_decay():
         data = 0.9999
         try:

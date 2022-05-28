@@ -34,6 +34,7 @@ class RewardProcessing:
         self._load_templates()
 
         self.timed_list = TimedList(AgentConfig.get_reward_time_gap())
+        self.default_reward = AgentConfig.get_default_reward()
 
     def put_data(self, data):
         """
@@ -90,6 +91,9 @@ class RewardProcessing:
 
         if self.testing:
             print('\n' + '=' * 20, f"Total time: {time.time() - start}", '=' * 20)
+
+        if reward_totals == 0:
+            reward_totals = self.default_reward
 
         return reward_totals
 

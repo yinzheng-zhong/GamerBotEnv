@@ -88,7 +88,10 @@ class DataPipeline:
 
         self.video_process.start()
         self.reward_process_proc_0.start()
-        self.key_listen_proc.start()
+
+        if not self.agent_in_control:
+            self.key_listen_proc.start()
+
         self.input_process_process.start()
         self.agent_process.start()
 
@@ -111,7 +114,7 @@ class DataPipeline:
         except q.Empty:
             pass
 
-        return Agent.get_default_reward()  # default reward
+        return 0
 
     def retrieve_last_audio_buffer(self):
         return self.audio_cap.get_audio()
@@ -151,12 +154,20 @@ class DataPipeline:
         #     self.reward_process_1 = RewardProcessing(self.reward_processing_queue, self.reward_queue, const.PATH_TEMPLATES)
         #     self.reward_process_proc_1 = Process(target=self.reward_process_1.run)
 
-        try:
-            self.key_listen_proc.is_alive()
-        except OSError:
-            print('\033[93m\nKey listen process is dead.\033[0m')
-            self.key_act = act.KeyMonitor(self.key_queue)
-            self.key_listen_proc = Process(target=self.key_act.start_listening)
+        if not self.agent_in_control:
+            try:
+                self.key_listen_proc.is_alive()
+            except OSError:
+                print('\033[93m\nKey listen process is dead.\033[0m')
+                self.key_act = act.KeyMonitor(self.key_queue)
+                self.key_listen_proc = Process(target=self.key_act.start_listening)
+        else:
+            try:
+                self.controller_process.is_alive()
+            except OSError:
+                print('\033[93m\nController process is dead.\033[0m')
+                self.controller = Controller(self.agent_action_queue)
+                self.controller_process = Process(target=self.controller.run)
 
         if not self.input_process_process.is_alive():
             print('\033[93m\nInput process process is dead.\033[0m')
@@ -200,7 +211,7 @@ class DataPipeline:
 
             # mute key if agent is controlling
             if self.agent_in_control:
-                key = []
+                key = None
             else:
                 key = self.retrieve_key_action()
 

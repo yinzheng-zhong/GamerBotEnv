@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     cap_queue = Queue(maxsize=1)
 
-    vcap = Video(cap_queue, frame_rate=1)
+    vcap = Video(cap_queue, frame_rate=10)
     vcap_process = Process(target=vcap.run)
     vcap_process.start()
 

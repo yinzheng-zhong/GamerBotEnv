@@ -21,16 +21,22 @@ class Controller:
 
         self.mouse_move_step = 10
 
-    def get_key(self):
-        key = self.key_queue.get()
-        return self.key_mapping.get_key_from_on_hot_mapping(key)
+    def get_key_string(self):
+        one_hot = self.key_queue.get()
+        return self.key_mapping.get_key_from_on_hot_mapping(one_hot)
 
     def decode_key(self, key):
-        if constance.MOUSE_KEY_PREFIX not in key:
-            if constance.KEY_RELEASE_SUFFIX in key:
-                pyautogui.keyUp(key.replace(constance.KEY_RELEASE_SUFFIX, ''))
+        if constance.MOUSE_KEY_PREFIX not in key and 'Button.' not in key:
+            if key == 'idle':
+                return
+            elif constance.KEY_RELEASE_SUFFIX in key:
+                key = key.replace(constance.KEY_RELEASE_SUFFIX, '')
+                key = self.key_mapping.convert_pynput_to_pyautogui(key)
+                pyautogui.keyUp(key)
             else:
+                key = self.key_mapping.convert_pynput_to_pyautogui(key)
                 pyautogui.keyDown(key)
+
         elif 'Button.' in key:
             mouse_button = key.replace('Button.', '')
             if mouse_button == 'left':
@@ -41,7 +47,7 @@ class Controller:
                 pyautogui.mouseUp(button='left')
             elif mouse_button == 'right' + constance.KEY_RELEASE_SUFFIX:
                 pyautogui.mouseUp(button='right')
-                
+
         else:
             if key in (constance.MOUSE_MOVE_LEFT, constance.MOUSE_MOVE_RIGHT, constance.MOUSE_STOP_X):
                 self.mouse_x_state = key
@@ -67,6 +73,6 @@ class Controller:
         mouse_thread.start()
 
         while True:
-            key = self.get_key()
+            key = self.get_key_string()
             self.decode_key(key)
 

@@ -39,8 +39,8 @@ class Video:
             if self.killed:
                 break
 
-            if time.time() - self.timestamps[-1] < 1 / self.frame_rate:
-                continue
+            # if time.time() - self.timestamps[-1] < 1 / self.frame_rate:
+            #     continue
             self.timestamps.append(time.time())  # log start time
 
             image = pyautogui.screenshot()

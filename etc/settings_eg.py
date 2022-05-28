@@ -29,8 +29,7 @@ class Settings:
         # the device ID for the stereo mixer. -1 for auto detection
         'audio_stereo_mixer_device_id': -1,
 
-        # -1 for the rest of the GPUs except the first one
-        'use_gpu_ids': -1,
+        'use_gpu_ids': 0,
     }
 
     """-------------------------------------------------------------------------------------------------"""
@@ -42,7 +41,9 @@ class Settings:
     neural_network = {
         'time_steps': 5,
         'batch_size': 4,
-        'screenshot_input_dim': (320, 180),
+
+        # if you change this, you must change the pytorch model view size too.
+        'screenshot_input_dim': (427, 240),
         'model': constance.NN_MODEL_LSTM,
 
         'training_queue_size': 1000,
@@ -62,6 +63,8 @@ class Settings:
         'agent_control': True,
 
         'default_reward': 0,
+
+        'epsilon': 1,
         'epsilon_decay': 0.999,
         'epsilon_min': 0.01,
     }

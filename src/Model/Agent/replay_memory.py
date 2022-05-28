@@ -2,7 +2,7 @@ import numpy as np
 from src.Helper.configs import *
 import collections
 
-MAX_SIZE = 1000
+MAX_SIZE = 10000
 
 
 class ReplayMemory:
