@@ -48,9 +48,9 @@ Use the format "'name_of_the_reward'+'tm_threshold'+'reward_amount'/" to create 
 
 All data should be passed to the input_queue in the Agent class. Each sample in the input queue is a dictional of {'state': , 'action': , 'reward': }.
 
-The 'state' is a tuple (screenshot, audio_l,  audio_r, prev_key, prev_mouse) where screenshot is a m x n x 1 greyscale image ndarray; audio_l and audio_r are the ndarrays of mel-spectrogram with shape m x m x 1; the prev_key is a one-hot key encoding of the last time step; and the prev_mouse is a tupe (x, y) of last mouse location where x and y are the percentage of screen location, i.e., (0.5, 0.5) will be the center of the screen.
+The 'state' is a tuple (screenshot, audio_l,  audio_r, prev_key) where screenshot is a m x n x 1 greyscale image ndarray; audio_l and audio_r are the ndarrays of mel-spectrogram with shape m x m x 1; the prev_key is a one-hot key encoding of the last time step.
 
-The 'action' is a tuple with the latest (key, mouse). If the agent is controlling, ignore this data. The key is the one-hot encoding key, and the moues is a tuple (x, y) just like the one in the state. It is up to you to further process this information.
+The 'action' is the on-hot key vector. If the agent is controlling, this data will be muted. Note that mouse action is also encoded into the key vector according to it's moving direction.
 
 The 'reward' is a number that represents the latest detected reward. In most cases, the reward is delayed, and the environment updates will not wait until the action has been taken.
 
