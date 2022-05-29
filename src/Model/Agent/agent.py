@@ -130,7 +130,10 @@ class Agent:
         return self._input_queue.get()
 
     def update_epsilon(self):
-        self.epsilon *= self.epsilon_decay if self.epsilon > self.epsilon_min else self.epsilon_min
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+        else:
+            self.epsilon = self.epsilon_min
 
     def train(self):
         batch = self.replay_memory.sample()
@@ -156,7 +159,7 @@ class Agent:
 
             # Update Q value for given state
             #  for predicted not human: current_qs = current_q_array[0][index]
-            current_qs = current_q_array[index]
+            current_qs = current_q_array[index].clone()
             current_qs[torch.argmax(action)] = new_q
 
             y.append(current_qs)
@@ -175,8 +178,9 @@ class Agent:
         print('Agent is running')
 
         try:
+            self.main_model.load_state_dict(torch.load(self.weight_file))
             self.target_model.load_state_dict(torch.load(self.weight_file))
-        except _pickle.UnpicklingError:
+        except (_pickle.UnpicklingError, RuntimeError):
             print('Model params have changed')
         except FileNotFoundError:
             print('Model weight file not found')
@@ -202,7 +206,7 @@ class Agent:
 
                 predicted_action = self.key_mapping.get_key_from_on_hot_mapping(numpy_action)
 
-                print('\npredicted_action: {}'.format(predicted_action))
+                print('\npredicted_action: {}'.format(numpy_action))
 
                 new_state, reward = self.action(numpy_action)
                 new_state = new_state[:3]  # remove the feedback
