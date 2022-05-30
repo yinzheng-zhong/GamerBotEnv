@@ -53,7 +53,7 @@ class Agent:
         self.device = torch.device("cuda:0")
 
         self.main_model = nn_pytorch.CNN().to(self.device)
-        self.target_model = nn_pytorch.CNN().to(self.device)
+        self.target_model = nn_pytorch.CNN().eval().to(self.device)
 
         self.optimizer = optim.Adam(self.main_model.parameters())
         self.loss_fn = nn.MSELoss()
@@ -143,12 +143,11 @@ class Agent:
 
         current_states = self.batch_samples_muilt_input_tensors([transition[0] for transition in batch])
         # The states are already tensors before we put them into the replay memory.
-        current_states = self.state_tensor_to_device(current_states)
         current_q_array = self.main_model(*current_states)
 
         new_states = self.batch_samples_muilt_input_tensors([transition[3] for transition in batch])
-        new_states = self.state_tensor_to_device(new_states)
-        future_q_array = self.target_model(*new_states)
+        with torch.no_grad():
+            future_q_array = self.target_model(*new_states)
 
         y = []
 
@@ -159,7 +158,7 @@ class Agent:
 
             # Update Q value for given state
             #  for predicted not human: current_qs = current_q_array[0][index]
-            current_qs = current_q_array[index].clone()
+            current_qs = current_q_array[index].clone().detach().requires_grad_(False)
             current_qs[torch.argmax(action)] = new_q
 
             y.append(current_qs)
@@ -188,13 +187,14 @@ class Agent:
         current_data = self.get_data()
 
         current_state = current_data['state'][:3]
-        current_state = self.state_np_to_tensors(current_state)
+        current_state = self.state_np_to_device(current_state)
 
         while True:
             if self._agent_control:
                 if np.random.random() > self.epsilon:
                     on_device_state = self.state_tensor_to_device(current_state)
-                    action = self.main_model(*(x.unsqueeze(0) for x in on_device_state)).detach().cpu()
+                    with torch.no_grad():
+                        action = self.main_model(*(x.unsqueeze(0) for x in on_device_state)).cpu()
                     numpy_action = action.numpy()
                 else:
                     action_ind = np.random.randint(0, self.key_output_size)
@@ -211,7 +211,7 @@ class Agent:
                 new_state, reward = self.action(numpy_action)
                 new_state = new_state[:3]  # remove the feedback
 
-                new_state = self.state_np_to_tensors(new_state)
+                new_state = self.state_np_to_device(new_state)
                 reward = torch.tensor(reward)
 
                 self.update_epsilon()
@@ -226,7 +226,7 @@ class Agent:
                 reward = new_data['reward'] if new_data['reward'] != 0 else 4
 
                 # all to device
-                new_state = self.state_np_to_tensors(new_state)
+                new_state = self.state_np_to_device(new_state)
                 action = torch.tensor(action)
                 reward = torch.tensor(reward)
 

@@ -80,6 +80,8 @@ class RewardProcessing:
         result_list = list(pool.starmap(self._check_single_reward, zipped))
 
         reward_totals = 0
+        found = False
+
         for i, n in enumerate(names):
             result = result_list[i]
             reward = int(rewards[i])
@@ -88,11 +90,12 @@ class RewardProcessing:
                 print(f"\033[93m\nGiving {reward} reward for {n}.\033[0m")
                 self.timed_list.add(n, time.time())
                 reward_totals += reward
+                found = True
 
         if self.testing:
             print('\n' + '=' * 20, f"Total time: {time.time() - start}", '=' * 20)
 
-        if reward_totals == 0:
+        if not found:
             reward_totals = self.default_reward
 
         return reward_totals
@@ -120,7 +123,7 @@ class RewardProcessing:
             total_reward = self._check_reward(pool)
             print(f"Total reward: {total_reward}")
 
-            if total_reward > 0:
+            if total_reward != 0:
                 print(f"\033[93m\nTotal reward: {total_reward}\033[0m")
                 self.put_data(total_reward)
                 print("Reward given.")
