@@ -194,7 +194,7 @@ class Agent:
             if self._agent_control:
                 if np.random.random() > self.epsilon:
                     on_device_state = self.state_tensor_to_device(current_state)
-                    action = self.main_model(*(x.unsqueeze(0) for x in on_device_state)).to('cpu').detach()
+                    action = self.main_model(*(x.unsqueeze(0) for x in on_device_state)).detach().cpu()
                     numpy_action = action.numpy()
                 else:
                     action_ind = np.random.randint(0, self.key_output_size)
