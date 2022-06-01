@@ -18,6 +18,7 @@ class Controller:
         self._frame_rate = Capturing.get_frame_rate()
         self._frame_time = 1 / self._frame_rate
         self._screen_resolution = Hardware.get_screen_res()
+        self.executed_keys = []
 
         self.mouse_move_step = 10
 
@@ -28,12 +29,19 @@ class Controller:
     def decode_key(self, key):
         if constance.MOUSE_KEY_PREFIX not in key and 'Button.' not in key:
             if key == 'idle':
-                return
+                self.executed_keys = []
             elif constance.KEY_RELEASE_SUFFIX in key:
-                key = key.replace(constance.KEY_RELEASE_SUFFIX, '')
-                key = self.key_mapping.convert_pynput_to_pyautogui(key)
-                pyautogui.keyUp(key)
-            else:
+                key_no_suffix = key.replace(constance.KEY_RELEASE_SUFFIX, '')
+                if key not in self.executed_keys:
+                    if key_no_suffix in self.executed_keys:
+                        self.executed_keys.remove(key_no_suffix)
+                    self.executed_keys.append(key)
+                    key_no_suffix = self.key_mapping.convert_pynput_to_pyautogui(key_no_suffix)
+                    pyautogui.keyUp(key_no_suffix)
+            elif key not in self.executed_keys:
+                if key + constance.KEY_RELEASE_SUFFIX in self.executed_keys:
+                    self.executed_keys.remove(key + constance.KEY_RELEASE_SUFFIX)
+                self.executed_keys.append(key)
                 key = self.key_mapping.convert_pynput_to_pyautogui(key)
                 pyautogui.keyDown(key)
 

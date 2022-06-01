@@ -29,7 +29,7 @@ class Settings:
         # the device ID for the stereo mixer. -1 for auto detection
         'audio_stereo_mixer_device_id': -1,
 
-        'use_gpu_ids': 0,
+        'use_device': 'cuda:0',
     }
 
     """-------------------------------------------------------------------------------------------------"""
@@ -63,6 +63,8 @@ class Settings:
         'agent_control': True,
 
         'default_reward': 0,
+
+        'gamma': 0.2,
 
         'epsilon': 1,
         'epsilon_decay': 0.999,

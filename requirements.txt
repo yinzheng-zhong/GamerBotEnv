@@ -10,5 +10,4 @@ pynput~=1.7.6
 PyAudio~=0.2.11
 librosa~=0.9.1
 torchsummary
-tensorflow-gpu~=2.8.0
 torch~=1.7.1+cu110

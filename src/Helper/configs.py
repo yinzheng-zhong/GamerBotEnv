@@ -88,6 +88,16 @@ class Agent:
         return data
 
     @staticmethod
+    def get_gamma():
+        data = 0.9
+        try:
+            data = Settings.agent['gamma']
+        except KeyError:
+            print('[ERROR] Agent gamma not found in config file.')
+
+        return data
+
+    @staticmethod
     def get_epsilon():
         data = 1
         try:
@@ -207,12 +217,12 @@ class Hardware:
         return data
 
     @staticmethod
-    def get_gpu_id():
-        data = -1
+    def get_device():
+        data = 'cpu'
         try:
-            data = Settings.hardware['use_gpu_ids']
+            data = Settings.hardware['use_device']
         except KeyError:
-            print('[ERROR] Hardware gpu id not found in config file. Default gpu id is -1.')
+            print('[ERROR] Hardware gpu id not found in config file. Default device is cpu.')
 
         return data
 

@@ -59,10 +59,10 @@ class CNN(nn.Module):
             nn.Linear(24, self.key_output_size),
         )
 
-    def forward(self, screen, sound_l, sound_r):
-        screen = self.screen(screen).view(-1, self.fc_input_size[0])
-        sound_l = self.sound(sound_l).view(-1, self.fc_input_size[1])
-        sound_r = self.sound(sound_r).view(-1, self.fc_input_size[2])
+    def forward(self, *inputs):
+        screen = self.screen(inputs[0]).view(-1, self.fc_input_size[0])
+        sound_l = self.sound(inputs[1]).view(-1, self.fc_input_size[1])
+        sound_r = self.sound(inputs[2]).view(-1, self.fc_input_size[2])
         combined = torch.cat((screen, sound_l, sound_r), 1)
         output = self.combined(combined)
         return output

@@ -128,3 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /etc/settings.py
+/agents/
+!/agents/example/

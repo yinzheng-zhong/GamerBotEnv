@@ -17,3 +17,4 @@ class ReplayMemory:
 
     def add(self, state, action, reward, new_state):
         self._memory.append((state, action, reward, new_state))
+        print(len(self._memory))

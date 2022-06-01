@@ -86,7 +86,9 @@ class RewardProcessing:
             result = result_list[i]
             reward = int(rewards[i])
             threshold = float(thresholds[i])
-            if n not in self.timed_list and result > threshold:
+            if n in self.timed_list:
+                found = True
+            elif result > threshold:
                 print(f"\033[93m\nGiving {reward} reward for {n}.\033[0m")
                 self.timed_list.add(n, time.time())
                 reward_totals += reward
@@ -119,11 +121,8 @@ class RewardProcessing:
         print("Starting reward checker.")
 
         while True:
-            print("Checking reward...")
             total_reward = self._check_reward(pool)
-            print(f"Total reward: {total_reward}")
-
             if total_reward != 0:
                 print(f"\033[93m\nTotal reward: {total_reward}\033[0m")
-                self.put_data(total_reward)
-                print("Reward given.")
+
+            self.put_data(total_reward)

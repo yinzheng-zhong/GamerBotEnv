@@ -13,21 +13,14 @@ import src.Helper.constance as constance
 from src.Helper.configs import NN as nn_config
 from src.Helper.configs import Keys as key_config
 from src.Helper.configs import Agent as agent_config
+from src.Helper.configs import Hardware as hardware_config
 from src.Model.Agent.replay_memory import ReplayMemory
 from src.Utils.key_mapping import KeyMapping
 import src.Model.NN.nn_pytorch as nn_pytorch
 import torch.nn as nn
-
-
-DISCOUNT = 0.99
+from torch.cuda.amp import autocast
 
 """ Migrated from Tensorflow. Need some optimisation later """
-
-
-# class CustomCallback(tf.keras.callbacks.Callback):
-#     @staticmethod
-#     def on_train_end(logs=None):
-#         print(logs)
 
 
 class Agent:
@@ -50,12 +43,13 @@ class Agent:
         #         tf.int8
         #     )
 
-        self.device = torch.device("cuda:0")
+        self.device = torch.device(hardware_config.get_device() if torch.cuda.is_available() else "cpu")
+        self.gamma = torch.tensor(agent_config.get_gamma()).to(self.device)
 
         self.main_model = nn_pytorch.CNN().to(self.device)
         self.target_model = nn_pytorch.CNN().eval().to(self.device)
 
-        self.optimizer = optim.Adam(self.main_model.parameters())
+        self.optimizer = optim.Adam(self.main_model.parameters(), lr=0.01)
         self.loss_fn = nn.MSELoss()
 
         self.weight_file = '{}weights-{}.h5'.format(constance.PATH_NN_WEIGHTS, nn_config.get_model_type())
@@ -116,11 +110,11 @@ class Agent:
         :param action:
         :return state, reward:
         """
-        if action is not None:
-            self._action_out_queue.put(action)
+        # if action is not None:
+        #     self._action_out_queue.put(action)
 
         data = self.get_data()
-        return data['state'], data['reward']
+        return data['state'][:3], data['reward']
 
     def get_data(self):
         """
@@ -141,11 +135,13 @@ class Agent:
         if len(batch) < NN.get_batch_size():
             return
 
+        self.optimizer.zero_grad()
+
         current_states = self.batch_samples_muilt_input_tensors([transition[0] for transition in batch])
-        # The states are already tensors before we put them into the replay memory.
+        new_states = self.batch_samples_muilt_input_tensors([transition[3] for transition in batch])
+
         current_q_array = self.main_model(*current_states)
 
-        new_states = self.batch_samples_muilt_input_tensors([transition[3] for transition in batch])
         with torch.no_grad():
             future_q_array = self.target_model(*new_states)
 
@@ -154,19 +150,20 @@ class Agent:
         for index, (current_state, action, reward, new_state) in enumerate(batch):
             '''this future_q_array has a mouse position so we use the first element'''
             max_future_q = torch.max(future_q_array[index])
-            new_q = reward + DISCOUNT * max_future_q
+            new_q = reward + self.gamma * max_future_q
 
             # Update Q value for given state
             #  for predicted not human: current_qs = current_q_array[0][index]
             current_qs = current_q_array[index].clone().detach().requires_grad_(False)
-            current_qs[torch.argmax(action)] = new_q
+            ind = torch.argmax(action)
+            current_qs[ind] = new_q
 
             y.append(current_qs)
 
         y = torch.stack(y)
 
-        self.optimizer.zero_grad()
         loss = self.loss_fn(current_q_array, y)
+
         loss.backward()
         self.optimizer.step()
 
@@ -184,9 +181,7 @@ class Agent:
         except FileNotFoundError:
             print('Model weight file not found')
 
-        current_data = self.get_data()
-
-        current_state = current_data['state'][:3]
+        current_state = self.get_data()['state']
         current_state = self.state_np_to_device(current_state)
 
         while True:
@@ -194,32 +189,34 @@ class Agent:
                 if np.random.random() > self.epsilon:
                     on_device_state = self.state_tensor_to_device(current_state)
                     with torch.no_grad():
-                        action = self.main_model(*(x.unsqueeze(0) for x in on_device_state)).cpu()
-                    numpy_action = action.numpy()
+                        action = self.main_model(*(x.unsqueeze(0) for x in on_device_state)).detach()[0]
+
+                    numpy_action = action.cpu().numpy()
                 else:
                     action_ind = np.random.randint(0, self.key_output_size)
-                    action = np.zeros(self.key_output_size)
+                    action = np.zeros(self.key_output_size, dtype=np.float32)
                     action[action_ind] = 1
 
                     numpy_action = np.array(action)
-                    action = torch.tensor(action)
+                    action = torch.tensor(action, dtype=torch.int8).to(self.device)
 
                 predicted_action = self.key_mapping.get_key_from_on_hot_mapping(numpy_action)
 
-                print('\npredicted_action: {}'.format(numpy_action))
+                print('\nOutput: {}'.format(numpy_action))
+                print('Predicted: {}'.format(predicted_action))
 
                 new_state, reward = self.action(numpy_action)
-                new_state = new_state[:3]  # remove the feedback
+                new_state = new_state
 
                 new_state = self.state_np_to_device(new_state)
-                reward = torch.tensor(reward)
+                reward = torch.tensor(reward, dtype=torch.int8).to(self.device)
 
                 self.update_epsilon()
 
             else:
                 '''Action prediction is done be human'''
                 new_data = self.get_data()
-                new_state = new_data['state'][:3]
+                new_state = new_data['state']
 
                 action = new_data['action']
                 #  always give some reward to human actions
@@ -227,8 +224,8 @@ class Agent:
 
                 # all to device
                 new_state = self.state_np_to_device(new_state)
-                action = torch.tensor(action)
-                reward = torch.tensor(reward)
+                action = torch.tensor(action, dtype=torch.int8).to(self.device)
+                reward = torch.tensor(reward, dtype=torch.int8).to(self.device)
 
             self.replay_memory.add(current_state, action, reward, new_state)
 
