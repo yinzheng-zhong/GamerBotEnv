@@ -10,9 +10,6 @@ mouse keys and cursor positions will be recorded and paired with a screenshot.
 States and actions (actions for supervised only and can be ignord) are captured in real time with a limited rate and all data will be sent through the pipeline to the
 pre-processor. The pre-processor will then return the precessed and normalised data to the agent. The agent response to the state and send the action to the controller which takes over real keyboard.
 
-# Plans
-Currently, this is a work in progress, and obviously, it does not work.
-
 # Antivirus
 Windows security is such a pain. If the actions.py file is missing, check the antivirus.
 
@@ -52,6 +49,8 @@ The 'state' is a tuple (screenshot, audio_l,  audio_r, prev_key) where screensho
 
 The 'action' is the on-hot key vector. If the agent is controlling, this data will be muted. Note that mouse action is also encoded into the key vector according to it's moving direction.
 
-The 'reward' is a number that represents the latest detected reward. In most cases, the reward is delayed, and the environment updates will not wait until the action has been taken.
+The 'reward' is a number that represents the latest detected reward. The reward is delayed and the signal itself is delayed, and the environment updates will not wait until the action has been taken.
+
+agents/example/agent.py is a customised agent implementation.
 
 
