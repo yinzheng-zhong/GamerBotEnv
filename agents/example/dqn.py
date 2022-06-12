@@ -42,8 +42,8 @@ class Agent(AgentBase):
         """
         Override parent method to include the last key
         """
-        # if action is not None:
-        #     self._action_out_queue.put(action)
+        if action is not None:
+            self._action_out_queue.put(action)
 
         data = self.get_data()
         self.last_action = action
