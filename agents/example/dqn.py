@@ -6,9 +6,12 @@ import _pickle
 from src.Model.Agent.agent_base import AgentBase as AgentBase
 
 from agents.example.nn import NN
+from src.Helper.configs import NN as nn_config
+from src.Helper.configs import Agent as agent_config
 import torch.nn as nn
 
-""" Agent implementation that will take the last key as an input """
+""" Agent implementation that will take the last key as an input. Do not sent any object 
+to the device in __init__ as the value will be lost when process starts"""
 
 
 class Agent(AgentBase):
@@ -39,8 +42,8 @@ class Agent(AgentBase):
         """
         Override parent method to include the last key
         """
-        if action is not None:
-            self._action_out_queue.put(action)
+        # if action is not None:
+        #     self._action_out_queue.put(action)
 
         data = self.get_data()
         self.last_action = action
@@ -50,7 +53,7 @@ class Agent(AgentBase):
     def train(self):
         batch = self.replay_memory.sample()
 
-        if len(batch) < NN.get_batch_size():
+        if len(batch) < nn_config.get_batch_size():
             return
 
         self.optimizer.zero_grad()
@@ -63,23 +66,16 @@ class Agent(AgentBase):
         with torch.no_grad():
             future_q_array = self.target_model(*new_states)
 
-        y = []
+        max_future_q = torch.max(future_q_array, dim=1).values
+        reward_array = torch.stack([transition[2] for transition in batch])
+        new_q = reward_array + self.gamma * max_future_q
 
-        for index, (current_state, action, reward, new_state) in enumerate(batch):
-            max_future_q = torch.max(future_q_array[index])
-            new_q = reward + self.gamma * max_future_q
+        current_qs = current_q_array.clone().detach().requires_grad_(False)
+        action_array = torch.stack([transition[1] for transition in batch])
+        action_indices = torch.argmax(action_array, dim=1)
+        current_qs[range(len(current_qs)), action_indices] = new_q
 
-            # Update Q value for given state
-            #  for predicted not human: current_qs = current_q_array[0][index]
-            current_qs = current_q_array[index].clone().detach().requires_grad_(False)
-            ind = torch.argmax(action)
-            current_qs[ind] = new_q
-
-            y.append(current_qs)
-
-        y = torch.stack(y)
-
-        loss = self.loss_fn(current_q_array, y)
+        loss = self.loss_fn(current_q_array, current_qs)
 
         loss.backward()
         self.optimizer.step()
@@ -89,6 +85,9 @@ class Agent(AgentBase):
 
     def run(self):
         print('Agent is running')
+
+        ''' gamma is initialised here, otherwise it will be lost when process starts'''
+        self.gamma = torch.tensor(agent_config.get_gamma()).to(self.device)
 
         try:
             self.main_model.load_state_dict(torch.load(self.weight_file))

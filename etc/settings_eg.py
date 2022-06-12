@@ -53,7 +53,7 @@ class Settings:
     agent = {
         # Change this to your own agent implementation. from (tuple)[0] import (tuple)[1].
         # Tuple format: (module_path, class_name)
-        'agent_class_path_name': ('agents.example.agent', 'Agent'),
+        'agent_class_path_name': ('agents.example.dqn', 'Agent'),
         # Same reward will not be given again within the gap. Some game displays the image for a while
         # in multiple frames. This settings prevents the agent from getting the same reward multiple times.
         'reward_time_gap': 5,

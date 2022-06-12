@@ -8,7 +8,6 @@ import numpy as np
 import torch
 from torch import optim
 
-from src.Helper.configs import NN
 import src.Helper.constance as constance
 from src.Helper.configs import NN as nn_config
 from src.Helper.configs import Keys as key_config
@@ -36,7 +35,7 @@ class AgentBase:
         self.key_output_size = key_config.get_key_mapping_size()
         self.key_mapping = KeyMapping()
 
-        self.replay_memory = ReplayMemory(NN.get_batch_size())
+        self.replay_memory = ReplayMemory(nn_config.get_batch_size())
         # self.prediction_type = (tf.float32, tf.float32, tf.float32, tf.int8)
         #
         # self.training_type = (
@@ -45,7 +44,7 @@ class AgentBase:
         #     )
 
         self.device = torch.device(hardware_config.get_device() if torch.cuda.is_available() else "cpu")
-        self.gamma = torch.tensor(agent_config.get_gamma()).to(self.device)
+        self.gamma = None
 
         self.main_model = None
         self.target_model = None
@@ -125,9 +124,6 @@ class AgentBase:
             self.epsilon *= self.epsilon_decay
         else:
             self.epsilon = self.epsilon_min
-
-    def train(self):
-        raise NotImplementedError
 
     def run(self):
         raise NotImplementedError
